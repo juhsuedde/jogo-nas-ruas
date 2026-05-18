@@ -90,6 +90,13 @@ function HomePage() {
               placeholder="buscar bar, jogo ou bairro"
               className="flex-1 bg-transparent outline-none text-sm placeholder:text-brasil-navy/50"
             />
+            <Link
+              to="/perfil"
+              aria-label="Meu perfil"
+              className="size-7 rounded-full bg-brasil-green flex items-center justify-center text-white font-display text-[11px] shrink-0"
+            >
+              LA
+            </Link>
           </div>
           <Link
             to="/add"
