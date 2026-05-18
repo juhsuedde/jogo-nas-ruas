@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, MapPin, Star, Loader2, ChevronLeft, Tv, Tag, Car } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface PlaceSuggestion {
@@ -114,10 +115,18 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     setIsSearching(true);
     setSearchError(null);
     try {
-      const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(q)}`);
-      if (!res.ok) throw new Error("Erro na busca");
-      const data = await res.json();
-      setPlaceSuggestions(data.predictions || []);
+      const { data, error } = await supabase.functions.invoke("google-places", {
+        body: { action: "search", query: q },
+      });
+      if (error) throw error;
+      const places = data?.places || [];
+      setPlaceSuggestions(
+        places.map((p: { place_id: string; name: string; formatted_address: string }) => ({
+          placeId: p.place_id,
+          title: p.name,
+          subtitle: p.formatted_address,
+        }))
+      );
     } catch (e) {
       setSearchError("Não foi possível buscar locais. Tente novamente.");
       setPlaceSuggestions([]);
@@ -139,21 +148,23 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     setIsLoadingDetails(true);
 
     try {
-      const res = await fetch(`/api/places/details?placeId=${suggestion.placeId}`);
-      if (!res.ok) throw new Error("Erro ao carregar detalhes");
-      const data = await res.json();
-      setGooglePlace({
-        name: data.name,
-        photoUrl: data.photoUrl,
-        rating: data.rating,
-        phone: data.phone, // guardamos, mas não exibimos no cadastro
-        website: data.website,
+      const { data, error } = await supabase.functions.invoke("google-places", {
+        body: { action: "details", placeId: suggestion.placeId },
       });
-      // Preenche nome imediatamente
-      if (data.name) setName(data.name);
-      // Atualiza coordenadas se vierem
-      if (data.lat && data.lng) {
-        setAddress((prev) => (prev ? { ...prev, lat: data.lat, lng: data.lng } : prev));
+      if (error) throw error;
+      const place = data?.place;
+      if (place) {
+        setGooglePlace({
+          name: place.name,
+          photoUrl: place.photoUrl,
+          rating: place.rating,
+          phone: place.phone,
+          website: place.website,
+        });
+        if (place.name) setName(place.name);
+        if (place.lat && place.lng) {
+          setAddress((prev) => (prev ? { ...prev, lat: place.lat, lng: place.lng } : prev));
+        }
       }
     } catch (e) {
       toast({
