@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { VenueDetail } from "@/components/VenueDetail";
 import { BottomNav } from "@/components/BottomNav";
 import { useVenue, useToggleRsvp, useMyRsvp } from "@/lib/venues";
 import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/venue/$id")({
   head: ({ params }) => ({
@@ -23,6 +25,29 @@ function VenuePage() {
   const [going, setGoing] = useState(false);
   const [guests, setGuests] = useState(1);
   const [error, setError] = useState<string | null>(null);
+
+  const shareUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/venue/${id}`
+    : `https://jogonasruas.lovable.app/venue/${id}`;
+
+  const handleShare = useCallback(() => {
+    if (!venue) return;
+    const title = `Vou assistir ${venue.match} no ${venue.name}!`;
+    const text = "Encontrei esse lugar no Jogo nas Ruas. Bora?";
+    const url = shareUrl;
+
+    if ((navigator as any).share) {
+      (navigator as any)
+        .share({ title, text, url })
+        .catch(() => {});
+    } else {
+      navigator.clipboard
+        .writeText(`${title}\n${text}\n${url}`)
+        .then(() => toast.success("Link copiado!"))
+        .catch(() => toast.error("Erro ao copiar link."));
+    }
+  }, [venue, shareUrl]);
+
 
   useEffect(() => {
     if (myRsvp) {
@@ -77,6 +102,7 @@ function VenuePage() {
           onBack={() => navigate({ to: "/mapa" })}
           onToggleGoing={() => handleToggle(!going, guests)}
           onChangeGuests={(g) => handleToggle(true, Math.max(1, g))}
+          onShare={handleShare}
         />
         {!user && (
           <div className="mt-3 rounded-2xl bg-brasil-yellow/30 border-2 border-brasil-navy/20 p-3 text-center text-sm">
