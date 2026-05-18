@@ -271,10 +271,23 @@ function PerfilPage() {
         </section>
 
         {/* Logout */}
-        <button className="w-full rounded-2xl bg-card border-2 border-destructive/40 text-destructive font-bold py-3 flex items-center justify-center gap-2">
-          <LogOut className="size-4" />
-          Sair da conta
-        </button>
+        {user ? (
+          <button
+            onClick={handleSignOut}
+            className="w-full rounded-2xl bg-card border-2 border-destructive/40 text-destructive font-bold py-3 flex items-center justify-center gap-2"
+          >
+            <LogOut className="size-4" />
+            Sair da conta
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="block w-full rounded-2xl bg-brasil-green text-white font-bold py-3 text-center"
+          >
+            Entrar
+          </Link>
+        )}
+
 
         <p className="text-center text-[11px] text-muted-foreground pt-2">
           jogo nas ruas · copa 2026
