@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MapaRouteImport } from './routes/mapa'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VenueIdRouteImport } from './routes/venue.$id'
@@ -23,6 +24,11 @@ const PerfilRoute = PerfilRouteImport.update({
 const MapaRoute = MapaRouteImport.update({
   id: '/mapa',
   path: '/mapa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AddRoute = AddRouteImport.update({
@@ -44,6 +50,7 @@ const VenueIdRoute = VenueIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/login': typeof LoginRoute
   '/mapa': typeof MapaRoute
   '/perfil': typeof PerfilRoute
   '/venue/$id': typeof VenueIdRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/login': typeof LoginRoute
   '/mapa': typeof MapaRoute
   '/perfil': typeof PerfilRoute
   '/venue/$id': typeof VenueIdRoute
@@ -59,21 +67,23 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/add': typeof AddRoute
+  '/login': typeof LoginRoute
   '/mapa': typeof MapaRoute
   '/perfil': typeof PerfilRoute
   '/venue/$id': typeof VenueIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/add' | '/mapa' | '/perfil' | '/venue/$id'
+  fullPaths: '/' | '/add' | '/login' | '/mapa' | '/perfil' | '/venue/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/add' | '/mapa' | '/perfil' | '/venue/$id'
-  id: '__root__' | '/' | '/add' | '/mapa' | '/perfil' | '/venue/$id'
+  to: '/' | '/add' | '/login' | '/mapa' | '/perfil' | '/venue/$id'
+  id: '__root__' | '/' | '/add' | '/login' | '/mapa' | '/perfil' | '/venue/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddRoute: typeof AddRoute
+  LoginRoute: typeof LoginRoute
   MapaRoute: typeof MapaRoute
   PerfilRoute: typeof PerfilRoute
   VenueIdRoute: typeof VenueIdRoute
@@ -93,6 +103,13 @@ declare module '@tanstack/react-router' {
       path: '/mapa'
       fullPath: '/mapa'
       preLoaderRoute: typeof MapaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/add': {
@@ -122,6 +139,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddRoute: AddRoute,
+  LoginRoute: LoginRoute,
   MapaRoute: MapaRoute,
   PerfilRoute: PerfilRoute,
   VenueIdRoute: VenueIdRoute,
@@ -129,3 +147,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
