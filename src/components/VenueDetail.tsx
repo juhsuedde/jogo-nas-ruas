@@ -8,6 +8,7 @@ export function VenueDetail({
   guests,
   onToggleGoing,
   onChangeGuests,
+  onShare,
 }: {
   venue: Venue;
   onBack: () => void;
@@ -15,9 +16,9 @@ export function VenueDetail({
   guests: number;
   onToggleGoing: () => void;
   onChangeGuests: (g: number) => void;
+  onShare?: () => void;
 }) {
   const count = venue.rsvps + (going ? guests : 0);
-
 
   return (
     <div>
@@ -103,7 +104,6 @@ export function VenueDetail({
           </button>
         </div>
       </div>
-
 
       {venue.promo && (
         <div className="mt-3 rounded-2xl bg-brasil-yellow/40 border-2 border-brasil-navy/30 p-4 flex items-start gap-2.5">
