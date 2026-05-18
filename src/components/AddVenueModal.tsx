@@ -73,7 +73,7 @@ export function AddVenueModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-brasil-navy/40 flex items-end sm:items-center justify-center sm:p-3">
+    <div className="absolute inset-0 z-[1000] bg-brasil-navy/40 flex items-end sm:items-center justify-center sm:p-3">
       <div className="w-full sm:max-w-md bg-card sm:rounded-3xl rounded-t-3xl handmade-border-yellow flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 pb-2">

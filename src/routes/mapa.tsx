@@ -54,7 +54,7 @@ function MapPage() {
   }, [filters, query]);
 
   return (
-    <main className="fixed inset-0 overflow-hidden">
+    <main className="absolute inset-0 overflow-hidden">
       <ClientOnly
         fallback={<div className="absolute inset-0 bg-muted animate-pulse" />}
       >

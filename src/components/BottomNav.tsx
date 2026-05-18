@@ -14,7 +14,7 @@ const items: Array<{
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-[700] pointer-events-none">
+    <nav className="absolute bottom-0 inset-x-0 z-[700] pointer-events-none">
       <div className="mx-auto max-w-md px-3 pb-3 pointer-events-auto">
         <div className="bg-brasil-navy rounded-full handmade-border-yellow flex items-center justify-around px-2 py-2">
           {items.map(({ to, label, icon: Icon, primary }) => (

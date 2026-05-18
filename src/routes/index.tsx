@@ -33,7 +33,7 @@ function Splash() {
   }, [navigate]);
 
   return (
-    <main className="fixed inset-0 bg-brasil-green flex flex-col items-center justify-center overflow-hidden">
+    <main className="absolute inset-0 bg-brasil-green flex flex-col items-center justify-center overflow-hidden">
       {/* Decorative dot pattern */}
       <div
         className="absolute inset-0 opacity-25"
