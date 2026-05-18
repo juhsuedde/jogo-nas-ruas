@@ -136,7 +136,10 @@ export function VenueDetail({
         >
           <Navigation2 className="size-4" /> Rotas
         </a>
-        <button className="rounded-xl bg-card border-2 border-brasil-navy py-3 flex flex-col items-center gap-1 text-xs font-bold text-brasil-navy">
+        <button
+          onClick={onShare}
+          className="rounded-xl bg-card border-2 border-brasil-navy py-3 flex flex-col items-center gap-1 text-xs font-bold text-brasil-navy"
+        >
           <Share2 className="size-4" /> Compartilhar
         </button>
       </div>
