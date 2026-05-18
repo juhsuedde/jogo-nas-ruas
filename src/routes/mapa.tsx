@@ -31,6 +31,11 @@ function MapPage() {
   const [active, setActive] = useState<string | null>("1");
   const [filters, setFilters] = useState<Set<FilterId>>(new Set(["today"]));
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 450);
+    return () => clearTimeout(t);
+  }, []);
 
   const toggle = (id: FilterId) => {
     const next = new Set(filters);
