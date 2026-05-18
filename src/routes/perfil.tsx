@@ -157,13 +157,16 @@ function PerfilPage() {
           </div>
           <div className="min-w-0">
             <p className="font-display text-lg text-brasil-navy truncate">
-              {USER.name}
+              {displayName}
             </p>
-            <p className="text-sm text-muted-foreground">{USER.handle}</p>
+            <p className="text-sm text-muted-foreground truncate">
+              {user?.email ?? USER.handle}
+            </p>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <MapPin className="size-3" /> {USER.city}
             </p>
           </div>
+
         </section>
 
         {/* Stats */}
