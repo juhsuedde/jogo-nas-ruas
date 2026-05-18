@@ -2,26 +2,32 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Jogo nas Ruas — Copa 2026" },
-      {
-        name: "description",
-        content:
-          "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026.",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1, maximum-scale=1",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800;900&display=swap",
-      },
-    ],
-  }),
+  head: () => {
+    const url = "https://jogonasruas.lovable.app/";
+    const title = "Jogo nas Ruas — Mapa da Copa 2026";
+    const description =
+      "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1, maximum-scale=1",
+        },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+      ],
+      links: [
+        { rel: "canonical", href: url },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800;900&display=swap",
+        },
+      ],
+    };
+  },
   component: Splash,
 });
 
@@ -52,9 +58,9 @@ function Splash() {
           ⚽
         </div>
         <h1 className="font-display text-4xl text-white leading-tight tracking-wide">
-          JOGO NAS
+          JOGO NAS RUAS
           <br />
-          <span className="text-brasil-yellow">RUAS</span>
+          <span className="text-brasil-yellow text-2xl">Mapa da Copa 2026</span>
         </h1>
         <p className="text-white/90 font-bold text-sm">copa 2026 · brasil</p>
 

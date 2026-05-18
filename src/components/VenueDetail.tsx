@@ -31,9 +31,9 @@ export function VenueDetail({
 
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl text-brasil-navy leading-tight">
+          <h1 className="font-display text-2xl text-brasil-navy leading-tight">
             {venue.name}
-          </h2>
+          </h1>
           <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
             <MapPin className="size-3.5" /> {venue.address}
           </p>
@@ -79,6 +79,7 @@ export function VenueDetail({
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => onChangeGuests(Math.max(1, guests - 1))}
+                aria-label="Diminuir número de acompanhantes"
                 className="size-7 rounded-full bg-muted font-bold"
               >
                 −
@@ -88,6 +89,7 @@ export function VenueDetail({
               </span>
               <button
                 onClick={() => onChangeGuests(guests + 1)}
+                aria-label="Aumentar número de acompanhantes"
                 className="size-7 rounded-full bg-muted font-bold"
               >
                 +

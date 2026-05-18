@@ -120,9 +120,9 @@ export function AddVenueModal({ onClose }: { onClose: () => void }) {
       <div className="w-full sm:max-w-md bg-card sm:rounded-3xl rounded-t-3xl handmade-border-yellow flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 pb-2">
-          <h2 className="font-display text-lg text-brasil-navy">
+          <h1 className="font-display text-lg text-brasil-navy">
             {sent ? "" : "cadastrar local"}
-          </h2>
+          </h1>
           <button
             onClick={onClose}
             className="size-9 rounded-full bg-muted flex items-center justify-center"
@@ -182,6 +182,7 @@ export function AddVenueModal({ onClose }: { onClose: () => void }) {
                         setAddress(null);
                       }}
                       placeholder="Digite rua, número, bairro…"
+                      aria-label="Buscar endereço do local"
                       className="flex-1 bg-transparent outline-none text-base placeholder:text-brasil-navy/40"
                     />
                   </div>

@@ -15,16 +15,22 @@ const MapView = lazy(() =>
 );
 
 export const Route = createFileRoute("/mapa")({
-  head: () => ({
-    meta: [
-      { title: "Mapa — Jogo nas Ruas" },
-      {
-        name: "description",
-        content:
-          "Encontre bares, restaurantes e praças transmitindo a Copa 2026 perto de você.",
-      },
-    ],
-  }),
+  head: () => {
+    const url = "https://jogonasruas.lovable.app/mapa";
+    const title = "Mapa da Copa 2026 — Jogo nas Ruas";
+    const description =
+      "Encontre bares, restaurantes e praças transmitindo a Copa 2026 perto de você.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: MapPage,
 });
 
@@ -62,6 +68,7 @@ function MapPage() {
 
   return (
     <main className="absolute inset-0 overflow-hidden">
+      <h1 className="sr-only">Mapa da Copa 2026 — onde assistir aos jogos</h1>
       <ClientOnly
         fallback={<div className="absolute inset-0 bg-muted animate-pulse" />}
       >
@@ -85,6 +92,7 @@ function MapPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="buscar bar, jogo ou bairro"
+              aria-label="Buscar bar, jogo ou bairro"
               className="flex-1 bg-transparent outline-none text-sm placeholder:text-brasil-navy/50"
             />
             <Link
