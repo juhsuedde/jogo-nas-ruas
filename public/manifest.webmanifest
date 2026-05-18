@@ -1,14 +1,16 @@
 {
   "name": "Jogo nas Ruas",
-  "short_name": "Jogo nas Ruas",
+  "short_name": "JogoRuas",
   "description": "Mapa colaborativo de onde assistir aos jogos da Copa 2026 perto de você.",
-  "start_url": "/",
+  "start_url": "/mapa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "orientation": "portrait",
-  "background_color": "#1B8F3A",
-  "theme_color": "#1B8F3A",
+  "background_color": "#1F2C6B",
+  "theme_color": "#1F2C6B",
   "lang": "pt-BR",
+  "dir": "ltr",
   "categories": ["sports", "social", "entertainment"],
   "icons": [
     {
