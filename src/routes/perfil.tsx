@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
+import { BottomNav } from "@/components/BottomNav";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
@@ -110,7 +111,8 @@ const MY_VENUES = [
 
 function PerfilPage() {
   return (
-    <main className="min-h-screen pb-10">
+    <main className="min-h-screen pb-28">
+      <BottomNav />
       {/* Header */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b-2 border-brasil-navy/10">
         <div className="max-w-md mx-auto flex items-center justify-between p-4">
