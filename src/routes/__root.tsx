@@ -7,8 +7,10 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { AuthProvider } from "@/hooks/use-auth";
 
 import appCss from "../styles.css?url";
+
 
 function NotFoundComponent() {
   return (
@@ -126,13 +128,16 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="phone-frame">
-        <div className="phone-screen">
-          <Outlet />
-          <div className="grain-overlay" aria-hidden />
+      <AuthProvider>
+        <div className="phone-frame">
+          <div className="phone-screen">
+            <Outlet />
+            <div className="grain-overlay" aria-hidden />
+          </div>
+          <div className="phone-notch" aria-hidden />
         </div>
-        <div className="phone-notch" aria-hidden />
-      </div>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
+

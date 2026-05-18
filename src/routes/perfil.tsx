@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Star,
@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
+import { useAuth } from "@/hooks/use-auth";
+
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
@@ -110,7 +112,16 @@ const MY_VENUES = [
 ];
 
 function PerfilPage() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const displayName = user?.email?.split("@")[0] ?? USER.name;
+  const initials = (user?.email?.slice(0, 2) ?? USER.initials).toUpperCase();
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/login" });
+  };
   return (
+
     <main className="absolute inset-0 overflow-y-auto pb-28">
       <BottomNav />
       {/* Header */}
@@ -136,22 +147,26 @@ function PerfilPage() {
           <div className="relative">
             <div className="size-20 rounded-full bg-brasil-green handmade-border flex items-center justify-center">
               <span className="font-display text-2xl text-white">
-                {USER.initials}
+                {initials}
               </span>
             </div>
             <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-brasil-yellow border-2 border-brasil-navy flex items-center justify-center text-sm">
+
               ⚽
             </div>
           </div>
           <div className="min-w-0">
             <p className="font-display text-lg text-brasil-navy truncate">
-              {USER.name}
+              {displayName}
             </p>
-            <p className="text-sm text-muted-foreground">{USER.handle}</p>
+            <p className="text-sm text-muted-foreground truncate">
+              {user?.email ?? USER.handle}
+            </p>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <MapPin className="size-3" /> {USER.city}
             </p>
           </div>
+
         </section>
 
         {/* Stats */}
@@ -256,10 +271,23 @@ function PerfilPage() {
         </section>
 
         {/* Logout */}
-        <button className="w-full rounded-2xl bg-card border-2 border-destructive/40 text-destructive font-bold py-3 flex items-center justify-center gap-2">
-          <LogOut className="size-4" />
-          Sair da conta
-        </button>
+        {user ? (
+          <button
+            onClick={handleSignOut}
+            className="w-full rounded-2xl bg-card border-2 border-destructive/40 text-destructive font-bold py-3 flex items-center justify-center gap-2"
+          >
+            <LogOut className="size-4" />
+            Sair da conta
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="block w-full rounded-2xl bg-brasil-green text-white font-bold py-3 text-center"
+          >
+            Entrar
+          </Link>
+        )}
+
 
         <p className="text-center text-[11px] text-muted-foreground pt-2">
           jogo nas ruas · copa 2026

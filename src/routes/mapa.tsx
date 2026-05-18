@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, lazy, Suspense, useEffect } from "react";
+import { useMemo, useState, lazy, Suspense } from "react";
 import { Plus, Search } from "lucide-react";
-import { FILTERS, VENUES, type FilterId } from "@/data/venues";
+import { FILTERS, type FilterId } from "@/data/venues";
 import { BottomSheet } from "@/components/BottomSheet";
 import { VenueCard } from "@/components/VenueCard";
 import { VenueCardSkeleton } from "@/components/VenueCardSkeleton";
 import { ClientOnly } from "@/components/ClientOnly";
 import { BottomNav } from "@/components/BottomNav";
+import { useVenues } from "@/lib/venues";
+import { useAuth } from "@/hooks/use-auth";
 
 const MapView = lazy(() =>
   import("@/components/MapView").then((m) => ({ default: m.MapView })),
@@ -28,14 +30,12 @@ export const Route = createFileRoute("/mapa")({
 
 function MapPage() {
   const navigate = useNavigate();
-  const [active, setActive] = useState<string | null>("1");
+  const { user } = useAuth();
+  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "LA";
+  const [active, setActive] = useState<string | null>(null);
   const [filters, setFilters] = useState<Set<FilterId>>(new Set(["today"]));
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 450);
-    return () => clearTimeout(t);
-  }, []);
+  const { data: allVenues = [], isLoading: loading } = useVenues();
 
   const toggle = (id: FilterId) => {
     const next = new Set(filters);
@@ -44,7 +44,7 @@ function MapPage() {
   };
 
   const venues = useMemo(() => {
-    return VENUES.filter((v) => {
+    return allVenues.filter((v) => {
       if (filters.has("brazil") && !v.isBrazilMatch) return false;
       if (filters.has("screen") && !v.bigScreen) return false;
       if (filters.has("city") && v.city !== "São Paulo") return false;
@@ -57,7 +57,8 @@ function MapPage() {
         return false;
       return true;
     });
-  }, [filters, query]);
+  }, [allVenues, filters, query]);
+
 
   return (
     <main className="absolute inset-0 overflow-hidden">
@@ -87,12 +88,13 @@ function MapPage() {
               className="flex-1 bg-transparent outline-none text-sm placeholder:text-brasil-navy/50"
             />
             <Link
-              to="/perfil"
+              to={user ? "/perfil" : "/login"}
               aria-label="Meu perfil"
               className="size-7 rounded-full bg-brasil-green flex items-center justify-center text-white font-display text-[11px] shrink-0"
             >
-              LA
+              {initials}
             </Link>
+
           </div>
           <Link
             to="/add"

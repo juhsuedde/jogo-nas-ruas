@@ -1,40 +1,94 @@
-import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
-import { VENUES } from "@/data/venues";
+import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { VenueDetail } from "@/components/VenueDetail";
 import { BottomNav } from "@/components/BottomNav";
+import { useVenue, useToggleRsvp, useMyRsvp } from "@/lib/venues";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/venue/$id")({
-  head: ({ params }) => {
-    const v = VENUES.find((x) => x.id === params.id);
-    return {
-      meta: [
-        { title: v ? `${v.name} — Jogo nas Ruas` : "Local — Jogo nas Ruas" },
-        ...(v
-          ? [{ name: "description", content: `${v.match} no ${v.name}` }]
-          : []),
-      ],
-    };
-  },
-  loader: ({ params }) => {
-    const venue = VENUES.find((v) => v.id === params.id);
-    if (!venue) throw notFound();
-    return { venue };
-  },
-  notFoundComponent: () => (
-    <div className="p-6 text-center">
-      <p className="font-display text-xl text-brasil-navy">local não encontrado</p>
-    </div>
-  ),
+  head: ({ params }) => ({
+    meta: [{ title: `Local — Jogo nas Ruas` }],
+  }),
   component: VenuePage,
 });
 
 function VenuePage() {
-  const { venue } = Route.useLoaderData();
+  const { id } = useParams({ from: "/venue/$id" });
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: venue, isLoading } = useVenue(id);
+  const { data: myRsvp } = useMyRsvp(id);
+  const toggleRsvp = useToggleRsvp(id);
+
+  const [going, setGoing] = useState(false);
+  const [guests, setGuests] = useState(1);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (myRsvp) {
+      setGoing(true);
+      setGuests(myRsvp.guests ?? 1);
+    } else {
+      setGoing(false);
+    }
+  }, [myRsvp]);
+
+  if (isLoading) {
+    return (
+      <main className="absolute inset-0 bg-background grid place-items-center">
+        <div className="animate-pulse text-brasil-navy">carregando…</div>
+      </main>
+    );
+  }
+
+  if (!venue) {
+    return (
+      <main className="absolute inset-0 bg-background grid place-items-center p-6">
+        <p className="font-display text-xl text-brasil-navy text-center">
+          local não encontrado
+        </p>
+      </main>
+    );
+  }
+
+  const handleToggle = async (next: boolean, nextGuests: number) => {
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    setError(null);
+    setGoing(next);
+    setGuests(nextGuests);
+    try {
+      await toggleRsvp.mutateAsync({ going: next, guests: nextGuests });
+    } catch (e: any) {
+      setError(e?.message ?? "Erro ao confirmar.");
+      setGoing(!next);
+    }
+  };
+
   return (
     <main className="absolute inset-0 overflow-y-auto bg-background pb-28">
       <div className="max-w-md mx-auto px-4 pt-5">
-        <VenueDetail venue={venue} onBack={() => navigate({ to: "/mapa" })} />
+        <VenueDetail
+          venue={venue}
+          going={going}
+          guests={guests}
+          onBack={() => navigate({ to: "/mapa" })}
+          onToggleGoing={() => handleToggle(!going, guests)}
+          onChangeGuests={(g) => handleToggle(true, Math.max(1, g))}
+        />
+        {!user && (
+          <div className="mt-3 rounded-2xl bg-brasil-yellow/30 border-2 border-brasil-navy/20 p-3 text-center text-sm">
+            <Link to="/login" className="font-bold text-brasil-navy underline">
+              entre
+            </Link>{" "}
+            pra confirmar presença
+          </div>
+        )}
+        {error && (
+          <p className="mt-2 text-sm text-red-600 text-center">{error}</p>
+        )}
       </div>
       <BottomNav />
     </main>
