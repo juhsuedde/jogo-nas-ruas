@@ -1,25 +1,36 @@
 import { useState } from "react";
 import { X, ArrowLeft, MapPin, Search, Check } from "lucide-react";
+import { useAddVenue } from "@/lib/venues";
+import { useAuth } from "@/hooks/use-auth";
+import { useNavigate } from "@tanstack/react-router";
 
-type Suggestion = { id: string; title: string; subtitle: string };
+type Suggestion = { id: string; title: string; subtitle: string; lat: number; lng: number };
+
 
 const ADDRESS_SUGGESTIONS: Suggestion[] = [
   {
     id: "a1",
     title: "Rua Augusta, 1200",
     subtitle: "Consolação · São Paulo",
+    lat: -23.5558,
+    lng: -46.6622,
   },
   {
     id: "a2",
     title: "Praça Roosevelt, 100",
     subtitle: "República · São Paulo",
+    lat: -23.5468,
+    lng: -46.6438,
   },
   {
     id: "a3",
     title: "Av. Paulista, 2500",
     subtitle: "Bela Vista · São Paulo",
+    lat: -23.5614,
+    lng: -46.6566,
   },
 ];
+
 
 const PERKS = [
   { id: "screen", emoji: "📺", label: "Tem Telão" },
