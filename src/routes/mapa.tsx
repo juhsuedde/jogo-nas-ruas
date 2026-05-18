@@ -92,37 +92,51 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
       return;
     }
 
-    // Use watchPosition to continuously track location
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        setUserLocation([position.coords.latitude, position.coords.longitude]);
-        setLocationError(null);
-      },
-      (error) => {
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setLocationError("Permissão negada");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setLocationError("Localização indisponível");
-            break;
-          case error.TIMEOUT:
-            setLocationError("Tempo esgotado");
-            break;
-          default:
-            setLocationError("Erro desconhecido");
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000, // Cache position for 30 seconds
-      },
-    );
+    const requestLocation = () => {
+      // First try getCurrentPosition for immediate result
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setLocationError(null);
+        },
+        () => {}, // Ignore errors on getCurrentPosition
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
 
-    return () => {
-      navigator.geolocation.clearWatch(watchId);
+      // Then also watch for continuous updates
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          console.log("Map location updated:", position.coords.latitude, position.coords.longitude);
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setLocationError(null);
+        },
+        (error) => {
+          console.log("Watch position error:", error.code);
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              setLocationError("Permissão negada");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              setLocationError("Localização indisponível");
+              break;
+            case error.TIMEOUT:
+              setLocationError("Tempo esgotado");
+              break;
+            default:
+              setLocationError("Erro desconhecido");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 30000,
+        },
+      );
+
+      return () => navigator.geolocation.clearWatch(watchId);
     };
+
+    requestLocation();
   }, []);
 
   const toggle = (id: FilterId) => {
