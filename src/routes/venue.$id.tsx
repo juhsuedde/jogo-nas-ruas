@@ -5,6 +5,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { useVenue, useToggleRsvp, useMyRsvp } from "@/lib/venues";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { requestNotificationPermission } from "@/lib/firebase";
+import { supabase } from "@/lib/supabase";
 
 
 export const Route = createFileRoute("/venue/$id")({
@@ -82,10 +84,25 @@ function VenuePage() {
       return;
     }
     setError(null);
+    const wasGoing = going;
     setGoing(next);
     setGuests(nextGuests);
     try {
       await toggleRsvp.mutateAsync({ going: next, guests: nextGuests });
+      if (next && !wasGoing) {
+        // Register for push reminders on first opt-in
+        const token = await requestNotificationPermission();
+        if (token) {
+          const { error: insErr } = await supabase
+            .from("fcm_tokens")
+            .upsert(
+              { user_id: user.id, token },
+              { onConflict: "token" },
+            );
+          if (insErr) console.error("fcm_tokens upsert:", insErr);
+          toast.success("Você receberá um lembrete 1h antes do jogo!");
+        }
+      }
     } catch (e: any) {
       setError(e?.message ?? "Erro ao confirmar.");
       setGoing(!next);
