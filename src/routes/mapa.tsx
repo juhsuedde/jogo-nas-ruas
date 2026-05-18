@@ -15,16 +15,22 @@ const MapView = lazy(() =>
 );
 
 export const Route = createFileRoute("/mapa")({
-  head: () => ({
-    meta: [
-      { title: "Mapa — Jogo nas Ruas" },
-      {
-        name: "description",
-        content:
-          "Encontre bares, restaurantes e praças transmitindo a Copa 2026 perto de você.",
-      },
-    ],
-  }),
+  head: () => {
+    const url = "https://jogonasruas.lovable.app/mapa";
+    const title = "Mapa da Copa 2026 — Jogo nas Ruas";
+    const description =
+      "Encontre bares, restaurantes e praças transmitindo a Copa 2026 perto de você.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: MapPage,
 });
 
