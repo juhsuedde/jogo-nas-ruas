@@ -58,9 +58,9 @@ function Splash() {
           ⚽
         </div>
         <h1 className="font-display text-4xl text-white leading-tight tracking-wide">
-          JOGO NAS
+          JOGO NAS RUAS
           <br />
-          <span className="text-brasil-yellow">RUAS</span>
+          <span className="text-brasil-yellow text-2xl">Mapa da Copa 2026</span>
         </h1>
         <p className="text-white/90 font-bold text-sm">copa 2026 · brasil</p>
 
