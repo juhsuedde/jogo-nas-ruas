@@ -1,11 +1,16 @@
 import { Link } from "@tanstack/react-router";
 import { Map, Plus, User } from "lucide-react";
 
-const items = [
+const items: Array<{
+  to: "/mapa" | "/add" | "/perfil";
+  label: string;
+  icon: typeof Map;
+  primary?: boolean;
+}> = [
   { to: "/mapa", label: "Mapa", icon: Map },
   { to: "/add", label: "Adicionar", icon: Plus, primary: true },
   { to: "/perfil", label: "Perfil", icon: User },
-] as const;
+];
 
 export function BottomNav() {
   return (
