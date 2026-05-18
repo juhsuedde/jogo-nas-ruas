@@ -9,7 +9,7 @@ import {
   Calendar,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -29,7 +29,6 @@ export const Route = createFileRoute("/perfil")({
 const USER = {
   name: "Lucas Andrade",
   handle: "@lucasdrade",
-  city: "São Paulo · SP",
   initials: "LA",
   stats: { jogos: 12, bares: 5, confirmados: 38 },
 };
@@ -114,6 +113,21 @@ function PerfilPage() {
   const navigate = useNavigate();
   const displayName = user?.email?.split("@")[0] ?? USER.name;
   const initials = (user?.email?.slice(0, 2) ?? USER.initials).toUpperCase();
+  const [userCity, setUserCity] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        // Use reverse geocoding to get city name (simplified - just show coords for now)
+        setUserCity("Sua localização");
+      },
+      () => {
+        setUserCity(null);
+      },
+    );
+  }, []);
+
   const handleSignOut = async () => {
     await signOut();
     navigate({ to: "/login" });
@@ -151,7 +165,7 @@ function PerfilPage() {
             <p className="font-display text-lg text-brasil-navy truncate">{displayName}</p>
             <p className="text-sm text-muted-foreground truncate">{user?.email ?? USER.handle}</p>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-              <MapPin className="size-3" /> {USER.city}
+              <MapPin className="size-3" /> {userCity ?? "Localização"}
             </p>
           </div>
         </section>
