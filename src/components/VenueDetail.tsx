@@ -1,17 +1,23 @@
 import type { Venue } from "@/data/venues";
 import { Phone, Navigation2, Share2, Users, Tv, Sparkles, MapPin, ArrowLeft } from "lucide-react";
-import { useState } from "react";
 
 export function VenueDetail({
   venue,
   onBack,
+  going,
+  guests,
+  onToggleGoing,
+  onChangeGuests,
 }: {
   venue: Venue;
   onBack: () => void;
+  going: boolean;
+  guests: number;
+  onToggleGoing: () => void;
+  onChangeGuests: (g: number) => void;
 }) {
-  const [going, setGoing] = useState(false);
-  const [guests, setGuests] = useState(1);
   const count = venue.rsvps + (going ? guests : 0);
+
 
   return (
     <div>
@@ -71,7 +77,7 @@ export function VenueDetail({
           {going && (
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => setGuests(Math.max(1, guests - 1))}
+                onClick={() => onChangeGuests(Math.max(1, guests - 1))}
                 className="size-7 rounded-full bg-muted font-bold"
               >
                 −
@@ -80,7 +86,7 @@ export function VenueDetail({
                 {guests}
               </span>
               <button
-                onClick={() => setGuests(guests + 1)}
+                onClick={() => onChangeGuests(guests + 1)}
                 className="size-7 rounded-full bg-muted font-bold"
               >
                 +
@@ -88,7 +94,7 @@ export function VenueDetail({
             </div>
           )}
           <button
-            onClick={() => setGoing(!going)}
+            onClick={onToggleGoing}
             className={`rounded-xl px-4 py-2 font-display text-sm border-2 border-brasil-navy ${
               going ? "bg-brasil-yellow text-brasil-navy" : "bg-brasil-green text-white"
             }`}
@@ -97,6 +103,7 @@ export function VenueDetail({
           </button>
         </div>
       </div>
+
 
       {venue.promo && (
         <div className="mt-3 rounded-2xl bg-brasil-yellow/40 border-2 border-brasil-navy/30 p-4 flex items-start gap-2.5">
