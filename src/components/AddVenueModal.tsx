@@ -413,14 +413,18 @@ export function AddVenueModal({ onClose }: { onClose: () => void }) {
                 </button>
               ) : (
                 <button
-                  disabled={!canAdvance}
+                  disabled={!canAdvance || addVenue.isPending}
                   onClick={submit}
                   className="flex-1 rounded-2xl bg-brasil-yellow text-brasil-navy font-display text-base py-3 handmade-border disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  ADICIONAR NO MAPA
+                  {addVenue.isPending ? "ENVIANDO..." : "ADICIONAR NO MAPA"}
                 </button>
               )}
             </div>
+            {error && (
+              <p className="px-4 pb-3 text-sm text-red-600 text-center -mt-1">{error}</p>
+            )}
+
           </>
         )}
       </div>
