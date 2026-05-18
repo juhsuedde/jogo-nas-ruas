@@ -46,15 +46,15 @@ export function useVenues() {
     queryFn: async (): Promise<Venue[]> => {
       const { data, error } = await supabase
         .from("venues")
-        .select("*, rsvps(guests)")
+        .select("*, rsvps(count)")
         .order("created_at", { ascending: false });
       if (error) {
         console.warn("[venues] falling back to mocks:", error.message);
         return MOCK_VENUES;
       }
       if (!data || data.length === 0) return MOCK_VENUES;
-      return (data as (VenueRow & { rsvps: { guests: number }[] })[]).map((r) =>
-        rowToVenue(r, r.rsvps?.reduce((a, b) => a + (b.guests ?? 1), 0) ?? 0),
+      return (data as (VenueRow & { rsvps: { count: number }[] })[]).map((r) =>
+        rowToVenue(r, r.rsvps?.[0]?.count ?? 0),
       );
     },
     staleTime: 30_000,
@@ -67,14 +67,14 @@ export function useVenue(id: string) {
     queryFn: async (): Promise<Venue | null> => {
       const { data, error } = await supabase
         .from("venues")
-        .select("*, rsvps(guests)")
+        .select("*, rsvps(count)")
         .eq("id", id)
         .maybeSingle();
       if (error || !data) {
         return MOCK_VENUES.find((v) => v.id === id) ?? null;
       }
-      const row = data as VenueRow & { rsvps: { guests: number }[] };
-      return rowToVenue(row, row.rsvps?.reduce((a, b) => a + (b.guests ?? 1), 0) ?? 0);
+      const row = data as VenueRow & { rsvps: { count: number }[] };
+      return rowToVenue(row, row.rsvps?.[0]?.count ?? 0);
     },
   });
 }
@@ -87,11 +87,11 @@ export function useMyRsvp(venueId: string) {
       if (!u.user) return null;
       const { data } = await supabase
         .from("rsvps")
-        .select("guests")
+        .select("*")
         .eq("venue_id", venueId)
         .eq("user_id", u.user.id)
         .maybeSingle();
-      return data ?? null;
+      return data ? { going: true, guests: (data as { guests?: number }).guests ?? 1 } : null;
     },
   });
 }
