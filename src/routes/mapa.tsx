@@ -83,49 +83,8 @@ function MapPage() {
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { data: allVenues = [], isLoading: loading } = useVenues();
-
-  useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (query.length < 2 || selectedPlace) {
-      setSearchResults([]);
-      return;
-    }
-
-    setIsSearching(true);
-    searchTimeoutRef.current = setTimeout(async () => {
-      const results = await searchPlaces(query);
-      setSearchResults(results);
-      setIsSearching(false);
-    }, 300);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, [query, selectedPlace]);
-
-  const handleSelectPlace = async (place: GooglePlace) => {
-    setIsSearching(true);
-    const details = await getPlaceDetails(place.place_id);
-    setIsSearching(false);
-    if (details) {
-      setSelectedPlace(details);
-      setQuery(details.name);
-      setSearchResults([]);
-    }
-  };
-
-  const clearSearch = () => {
-    setQuery("");
-    setSelectedPlace(null);
-    setSearchResults([]);
-  };
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -133,27 +92,43 @@ function MapPage() {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation([position.coords.latitude, position.coords.longitude]);
-        setLocationError(null);
-      },
-      (error) => {
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            setLocationError("Permissão negada");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setLocationError("Localização indisponível");
-            break;
-          case error.TIMEOUT:
-            setLocationError("Tempo esgotado");
-            break;
-          default:
-            setLocationError("Erro desconhecido");
-        }
-      },
-    );
+    const requestLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setLocationError(null);
+        },
+        (error) => {
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              setLocationError("Permissão negada");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              setLocationError("Localização indisponível");
+              break;
+            case error.TIMEOUT:
+              setLocationError("Tempo esgotado");
+              break;
+            default:
+              setLocationError("Erro desconhecido");
+          }
+        },
+      );
+    };
+
+    // Request immediately on mount
+    requestLocation();
+
+    // Also re-request when page becomes visible (e.g., after navigation from login)
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !userLocation) {
+        requestLocation();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const toggle = (id: FilterId) => {
