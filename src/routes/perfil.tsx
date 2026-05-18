@@ -113,17 +113,19 @@ function PerfilPage() {
   const navigate = useNavigate();
   const displayName = user?.email?.split("@")[0] ?? USER.name;
   const initials = (user?.email?.slice(0, 2) ?? USER.initials).toUpperCase();
-  const [userCity, setUserCity] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        // Use reverse geocoding to get city name (simplified - just show coords for now)
-        setUserCity("Sua localização");
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
       },
       () => {
-        setUserCity(null);
+        // Location denied/unavailable - don't show anything
       },
     );
   }, []);
@@ -164,9 +166,11 @@ function PerfilPage() {
           <div className="min-w-0">
             <p className="font-display text-lg text-brasil-navy truncate">{displayName}</p>
             <p className="text-sm text-muted-foreground truncate">{user?.email ?? USER.handle}</p>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-              <MapPin className="size-3" /> {userCity ?? "Localização"}
-            </p>
+            {userLocation && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                <MapPin className="size-3" /> {userLocation.lat.toFixed(2)}, {userLocation.lng.toFixed(2)}
+              </p>
+            )}
           </div>
         </section>
 

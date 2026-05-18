@@ -80,8 +80,8 @@ export function MapView({
       className="absolute inset-0 h-full w-full"
     >
       <TileLayer
-        attribution="&copy; OpenStreetMap"
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attribution">CARTO</a>'
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
       {venues.map((v) => (
         <Marker
