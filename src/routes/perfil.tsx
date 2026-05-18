@@ -112,7 +112,16 @@ const MY_VENUES = [
 ];
 
 function PerfilPage() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const displayName = user?.email?.split("@")[0] ?? USER.name;
+  const initials = (user?.email?.slice(0, 2) ?? USER.initials).toUpperCase();
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/login" });
+  };
   return (
+
     <main className="absolute inset-0 overflow-y-auto pb-28">
       <BottomNav />
       {/* Header */}
@@ -138,10 +147,11 @@ function PerfilPage() {
           <div className="relative">
             <div className="size-20 rounded-full bg-brasil-green handmade-border flex items-center justify-center">
               <span className="font-display text-2xl text-white">
-                {USER.initials}
+                {initials}
               </span>
             </div>
             <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-brasil-yellow border-2 border-brasil-navy flex items-center justify-center text-sm">
+
               ⚽
             </div>
           </div>
