@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
       },
-      { title: "Jogo nas Ruas — Copa 2026" },
+      { title: "Jogo nas Ruas — Onde assistir a Copa 2026" },
       {
         name: "description",
         content:
@@ -93,13 +93,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Jogo nas Ruas" },
-      { property: "og:title", content: "Jogo nas Ruas — Copa 2026" },
+      { property: "og:title", content: "Jogo nas Ruas — Onde assistir a Copa 2026" },
       {
         property: "og:description",
         content: "Encontre bares, restaurantes e praças transmitindo a Copa 2026.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Jogo nas Ruas — Onde assistir a Copa 2026" },
+      { name: "description", content: "Jogo nas Ruas is a PWA for finding FIFA World Cup 2026 viewing spots." },
+      { property: "og:description", content: "Jogo nas Ruas is a PWA for finding FIFA World Cup 2026 viewing spots." },
+      { name: "twitter:description", content: "Jogo nas Ruas is a PWA for finding FIFA World Cup 2026 viewing spots." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
