@@ -1,50 +1,65 @@
 import { useState, useRef, type ReactNode } from "react";
 
 export function BottomSheet({ children }: { children: ReactNode }) {
-  // Snap heights as vh
+  // Snap heights as vh: peek, half, full
   const snaps = [22, 55, 88];
   const [snap, setSnap] = useState(1);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [dragging, setDragging] = useState(false);
   const startY = useRef<number | null>(null);
-  const startSnap = useRef(1);
 
   const onPointerDown = (e: React.PointerEvent) => {
     startY.current = e.clientY;
-    startSnap.current = snap;
+    setDragging(true);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (startY.current === null) return;
-    const dy = e.clientY - startY.current;
-    const vh = window.innerHeight;
-    const currentH = (snaps[startSnap.current] / 100) * vh - dy;
-    const targetPct = (currentH / vh) * 100;
-    // find nearest snap visually for live feel
-    const nearest = snaps.reduce((p, c, i) =>
-      Math.abs(c - targetPct) < Math.abs(snaps[p] - targetPct) ? i : p, 0);
-    if (nearest !== snap) setSnap(nearest);
+    setDragOffset(e.clientY - startY.current);
   };
   const onPointerUp = () => {
+    if (startY.current === null) return;
+    const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+    const currentPct = snaps[snap] - (dragOffset / vh) * 100;
+    const nearest = snaps.reduce(
+      (p, c, i) =>
+        Math.abs(c - currentPct) < Math.abs(snaps[p] - currentPct) ? i : p,
+      0,
+    );
+    setSnap(nearest);
+    setDragOffset(0);
+    setDragging(false);
     startY.current = null;
   };
 
+  const heightVh = snaps[snap];
+
   return (
     <div
-      className="absolute inset-x-0 bottom-0 z-[500] rounded-t-3xl bg-card transition-[height] duration-300 ease-out flex flex-col"
+      className="absolute inset-x-0 bottom-0 z-[500] rounded-t-3xl bg-card flex flex-col will-change-transform"
       style={{
-        height: `${snaps[snap]}vh`,
+        height: `${heightVh}vh`,
+        transform: `translateY(${dragging ? Math.max(dragOffset, -((100 - heightVh) * 0.01) * (typeof window !== "undefined" ? window.innerHeight : 800)) : 0}px)`,
+        transition: dragging
+          ? "none"
+          : "height 320ms cubic-bezier(.22,1,.36,1), transform 320ms cubic-bezier(.22,1,.36,1)",
         borderTop: "2.5px solid var(--brasil-navy)",
         boxShadow: "0 -6px 0 0 var(--brasil-navy)",
+        touchAction: "none",
       }}
     >
       <div
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        className="pt-3 pb-2 flex justify-center cursor-grab active:cursor-grabbing touch-none"
+        onPointerCancel={onPointerUp}
+        className="pt-3 pb-2 flex justify-center cursor-grab active:cursor-grabbing"
       >
         <div className="h-1.5 w-12 rounded-full bg-brasil-navy/30" />
       </div>
-      <div className="flex-1 overflow-y-auto px-4 pb-6">{children}</div>
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6">
+        {children}
+      </div>
     </div>
   );
 }

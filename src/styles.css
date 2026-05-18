@@ -127,6 +127,68 @@
   }
 }
 
+/* Phone frame for editor preview on wider screens. On real mobile (<=480px)
+   the frame collapses to fullscreen. */
+.phone-frame {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0.18 0.05 265);
+  background-image:
+    radial-gradient(oklch(0.32 0.13 265 / 0.35) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--background);
+  overflow: hidden;
+  isolation: isolate;
+}
+.phone-notch { display: none; }
+
+@media (min-width: 481px) {
+  .phone-frame { padding: 24px; }
+  .phone-screen {
+    width: 390px;
+    height: min(844px, calc(100vh - 48px));
+    border-radius: 44px;
+    border: 10px solid #0a0a0a;
+    box-shadow:
+      0 0 0 2px #1a1a1a,
+      0 30px 60px -20px rgba(0, 0, 0, 0.6),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+  }
+  .phone-notch {
+    display: block;
+    position: absolute;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 28px;
+    border-radius: 999px;
+    background: #0a0a0a;
+    z-index: 9999;
+    pointer-events: none;
+  }
+}
+
+/* Grainy print texture overlay (no extra requests) */
+.grain-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.17 0 0 0 0 0.42 0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+}
+
 /* Leaflet tweaks */
 .leaflet-container {
   background: oklch(0.95 0.04 220);
@@ -136,3 +198,5 @@
   font-size: 9px !important;
   opacity: 0.6;
 }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { scrollbar-width: none; }

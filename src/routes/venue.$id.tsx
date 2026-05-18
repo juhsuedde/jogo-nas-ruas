@@ -32,7 +32,7 @@ function VenuePage() {
   const { venue } = Route.useLoaderData();
   const navigate = useNavigate();
   return (
-    <main className="min-h-screen bg-background pb-24">
+    <main className="absolute inset-0 overflow-y-auto bg-background pb-28">
       <div className="max-w-md mx-auto px-4 pt-5">
         <VenueDetail venue={venue} onBack={() => navigate({ to: "/mapa" })} />
       </div>
