@@ -68,6 +68,7 @@ function MapPage() {
 
   return (
     <main className="absolute inset-0 overflow-hidden">
+      <h1 className="sr-only">Mapa da Copa 2026 — onde assistir aos jogos</h1>
       <ClientOnly
         fallback={<div className="absolute inset-0 bg-muted animate-pulse" />}
       >
@@ -91,6 +92,7 @@ function MapPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="buscar bar, jogo ou bairro"
+              aria-label="Buscar bar, jogo ou bairro"
               className="flex-1 bg-transparent outline-none text-sm placeholder:text-brasil-navy/50"
             />
             <Link
