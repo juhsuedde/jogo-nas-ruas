@@ -8,6 +8,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { AuthProvider } from "@/hooks/use-auth";
+import { PwaRegister } from "@/components/PwaRegister";
+import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 
 import appCss from "../styles.css?url";
 
@@ -84,7 +86,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Mapa colaborativo de onde assistir aos jogos da Copa do Mundo 2026 perto de você.",
       },
-      { name: "theme-color", content: "#1B8F3A" },
+      { name: "theme-color", content: "#1F2C6B" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Jogo nas Ruas" },
@@ -132,10 +135,12 @@ function RootComponent() {
         <div className="phone-frame">
           <div className="phone-screen">
             <Outlet />
+            <PwaInstallPrompt />
             <div className="grain-overlay" aria-hidden />
           </div>
           <div className="phone-notch" aria-hidden />
         </div>
+        <PwaRegister />
       </AuthProvider>
     </QueryClientProvider>
   );
