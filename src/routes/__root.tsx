@@ -86,25 +86,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Mapa colaborativo de onde assistir aos jogos da Copa do Mundo 2026 perto de você.",
+          "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026 perto de você.",
       },
       { name: "theme-color", content: "#1F2C6B" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "Jogo nas Ruas" },
+      { property: "og:site_name", content: "Jogo nas Ruas" },
       { property: "og:title", content: "Jogo nas Ruas — Onde assistir a Copa 2026" },
       {
         property: "og:description",
-        content: "Encontre bares, restaurantes e praças transmitindo a Copa 2026.",
+        content:
+          "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026 perto de você.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Jogo nas Ruas — Onde assistir a Copa 2026" },
-      { name: "description", content: "Jogo nas Ruas is a PWA for finding FIFA World Cup 2026 viewing spots." },
-      { property: "og:description", content: "Jogo nas Ruas is a PWA for finding FIFA World Cup 2026 viewing spots." },
-      { name: "twitter:description", content: "Jogo nas Ruas is a PWA for finding FIFA World Cup 2026 viewing spots." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Jogo nas Ruas — Onde assistir a Copa 2026" },
+      {
+        name: "twitter:description",
+        content:
+          "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026 perto de você.",
+      },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png" },
     ],
     links: [
@@ -115,6 +119,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/icon-512.svg" },
       { rel: "icon", href: "/icon-192.svg", type: "image/svg+xml" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Jogo nas Ruas",
+          url: "https://jogonasruas.lovable.app",
+          description:
+            "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Jogo nas Ruas",
+          url: "https://jogonasruas.lovable.app",
+          logo: "https://jogonasruas.lovable.app/icon-512.svg",
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,
