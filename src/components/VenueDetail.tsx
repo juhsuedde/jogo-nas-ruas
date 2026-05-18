@@ -8,6 +8,7 @@ export function VenueDetail({
   guests,
   onToggleGoing,
   onChangeGuests,
+  onShare,
 }: {
   venue: Venue;
   onBack: () => void;
@@ -15,9 +16,9 @@ export function VenueDetail({
   guests: number;
   onToggleGoing: () => void;
   onChangeGuests: (g: number) => void;
+  onShare?: () => void;
 }) {
   const count = venue.rsvps + (going ? guests : 0);
-
 
   return (
     <div>
@@ -104,7 +105,6 @@ export function VenueDetail({
         </div>
       </div>
 
-
       {venue.promo && (
         <div className="mt-3 rounded-2xl bg-brasil-yellow/40 border-2 border-brasil-navy/30 p-4 flex items-start gap-2.5">
           <Sparkles className="size-5 text-brasil-navy shrink-0 mt-0.5" />
@@ -136,7 +136,10 @@ export function VenueDetail({
         >
           <Navigation2 className="size-4" /> Rotas
         </a>
-        <button className="rounded-xl bg-card border-2 border-brasil-navy py-3 flex flex-col items-center gap-1 text-xs font-bold text-brasil-navy">
+        <button
+          onClick={onShare}
+          className="rounded-xl bg-card border-2 border-brasil-navy py-3 flex flex-col items-center gap-1 text-xs font-bold text-brasil-navy"
+        >
           <Share2 className="size-4" /> Compartilhar
         </button>
       </div>
