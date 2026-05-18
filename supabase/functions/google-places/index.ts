@@ -1,7 +1,7 @@
 // supabase/functions/google-places/index.ts
 // Proxy para Google Places API (New) - evita CORS no frontend
 
-const GOOGLE_API_KEY = Deno.env.get("GOOGLE_PLACES_API_KEY") || "AIzaSyD8B54EB1MHrHB_fb8HfDznGjwE89B_6B8";
+const GOOGLE_API_KEY = Deno.env.get("GOOGLE_PLACES_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +12,13 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (!GOOGLE_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "API key not configured" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 
   try {

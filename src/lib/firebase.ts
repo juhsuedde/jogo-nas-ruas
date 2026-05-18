@@ -8,16 +8,15 @@ import {
 } from "firebase/messaging";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAj1yeQCze7e7aXCSLI3e4EcRCHKzeuESk",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
   authDomain: "jogo-nas-ruas.firebaseapp.com",
   projectId: "jogo-nas-ruas",
   storageBucket: "jogo-nas-ruas.firebasestorage.app",
-  messagingSenderId: "283883866697",
-  appId: "1:283883866697:web:46998ec7a80acb089a0d98",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_SENDER_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
 };
 
-const VAPID_KEY =
-  "BIjxcIaAsoIWrs2QTcDL5U6s3dBHHLG_ckABEdQF8Ez9jCoo7j5JdRk_DIbYgUT25zWvP2n4sVwBCAnyWtkW9KY";
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY || "";
 
 const app = typeof window !== "undefined" ? initializeApp(firebaseConfig) : null;
 
