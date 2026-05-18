@@ -182,6 +182,7 @@ export function AddVenueModal({ onClose }: { onClose: () => void }) {
                         setAddress(null);
                       }}
                       placeholder="Digite rua, número, bairro…"
+                      aria-label="Buscar endereço do local"
                       className="flex-1 bg-transparent outline-none text-base placeholder:text-brasil-navy/40"
                     />
                   </div>
