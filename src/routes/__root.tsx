@@ -126,8 +126,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800&display=swap",
       },
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/icon-512.svg" },
-      { rel: "icon", href: "/icon-192.svg", type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: "/icon-192.png", sizes: "192x192" },
+      { rel: "icon", href: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "icon", href: "/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
     scripts: [
       {
@@ -148,7 +149,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "Organization",
           name: "Jogo nas Ruas",
           url: "https://jogonasruas.lovable.app",
-          logo: "https://jogonasruas.lovable.app/icon-512.svg",
+          logo: "https://jogonasruas.lovable.app/icon-512.png",
         }),
       },
     ],
