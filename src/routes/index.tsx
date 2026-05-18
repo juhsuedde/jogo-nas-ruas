@@ -2,26 +2,32 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Jogo nas Ruas — Copa 2026" },
-      {
-        name: "description",
-        content:
-          "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026.",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1, maximum-scale=1",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800;900&display=swap",
-      },
-    ],
-  }),
+  head: () => {
+    const url = "https://jogonasruas.lovable.app/";
+    const title = "Jogo nas Ruas — Mapa da Copa 2026";
+    const description =
+      "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        {
+          name: "viewport",
+          content: "width=device-width, initial-scale=1, maximum-scale=1",
+        },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+      ],
+      links: [
+        { rel: "canonical", href: url },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800;900&display=swap",
+        },
+      ],
+    };
+  },
   component: Splash,
 });
 
