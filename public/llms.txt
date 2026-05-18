@@ -1,0 +1,11 @@
+# Jogo nas Ruas
+
+> Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026 no Brasil.
+
+Jogo nas Ruas é um PWA aberto onde torcedores cadastram e descobrem locais para assistir aos jogos da Copa 2026 juntos.
+
+## Pages
+
+- [Início](/): Página inicial com a marca e atalho para o mapa.
+- [Mapa](/mapa): Mapa interativo de locais transmitindo os jogos da Copa 2026.
+- [Cadastrar local](/add): Formulário para adicionar um novo bar, restaurante ou praça.
