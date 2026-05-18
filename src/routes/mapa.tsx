@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, lazy, Suspense } from "react";
+import { useMemo, useState, lazy, Suspense, useEffect } from "react";
 import { Plus, Search } from "lucide-react";
 import { FILTERS, VENUES, type FilterId } from "@/data/venues";
 import { BottomSheet } from "@/components/BottomSheet";
 import { VenueCard } from "@/components/VenueCard";
+import { VenueCardSkeleton } from "@/components/VenueCardSkeleton";
 import { ClientOnly } from "@/components/ClientOnly";
 import { BottomNav } from "@/components/BottomNav";
 
@@ -128,17 +129,23 @@ function MapPage() {
           </span>
         </div>
         <div className="space-y-3 pb-20">
-          {venues.map((v) => (
-            <VenueCard
-              key={v.id}
-              venue={v}
-              active={active === v.id}
-              onClick={() => {
-                setActive(v.id);
-                navigate({ to: "/venue/$id", params: { id: v.id } });
-              }}
-            />
-          ))}
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <VenueCardSkeleton key={i} />
+            ))
+          ) : (
+            venues.map((v) => (
+              <VenueCard
+                key={v.id}
+                venue={v}
+                active={active === v.id}
+                onClick={() => {
+                  setActive(v.id);
+                  navigate({ to: "/venue/$id", params: { id: v.id } });
+                }}
+              />
+            ))
+          )}
           {venues.length === 0 && (
             <div className="text-center py-10 text-muted-foreground">
               <div className="text-4xl mb-2">😶‍🌫️</div>
