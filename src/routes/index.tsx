@@ -37,7 +37,6 @@ export const Route = createFileRoute("/")({
 function HomePage() {
   const [active, setActive] = useState<string | null>("1");
   const [detail, setDetail] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
   const [filters, setFilters] = useState<Set<FilterId>>(new Set(["today"]));
   const [query, setQuery] = useState("");
 
@@ -92,13 +91,13 @@ function HomePage() {
               className="flex-1 bg-transparent outline-none text-sm placeholder:text-brasil-navy/50"
             />
           </div>
-          <button
-            onClick={() => setAdding(true)}
+          <Link
+            to="/add"
             className="size-12 rounded-full bg-brasil-yellow handmade-border flex items-center justify-center shrink-0"
             aria-label="Cadastrar local"
           >
             <Plus className="size-5 text-brasil-navy" strokeWidth={3} />
-          </button>
+          </Link>
         </div>
 
         {/* App title pill */}
@@ -161,8 +160,6 @@ function HomePage() {
           </>
         )}
       </BottomSheet>
-
-      {adding && <AddVenueModal onClose={() => setAdding(false)} />}
     </main>
   );
 }
