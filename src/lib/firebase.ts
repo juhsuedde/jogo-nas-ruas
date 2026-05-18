@@ -7,16 +7,25 @@ import {
   type MessagePayload,
 } from "firebase/messaging";
 
+const getEnvVar = (key: string): string => {
+  const value = import.meta.env[key];
+  if (!value) {
+    console.error(`Missing environment variable: ${key}`);
+    return "";
+  }
+  return value;
+};
+
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  apiKey: getEnvVar("VITE_FIREBASE_API_KEY"),
   authDomain: "jogo-nas-ruas.firebaseapp.com",
   projectId: "jogo-nas-ruas",
   storageBucket: "jogo-nas-ruas.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_SENDER_ID || "",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "",
+  messagingSenderId: getEnvVar("VITE_FIREBASE_SENDER_ID"),
+  appId: getEnvVar("VITE_FIREBASE_APP_ID"),
 };
 
-const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY || "";
+const VAPID_KEY = getEnvVar("VITE_FIREBASE_VAPID_KEY");
 
 const app = typeof window !== "undefined" ? initializeApp(firebaseConfig) : null;
 
