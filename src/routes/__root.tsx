@@ -71,21 +71,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+      },
+      { title: "Jogo nas Ruas — Copa 2026" },
+      {
+        name: "description",
+        content:
+          "Mapa colaborativo de onde assistir aos jogos da Copa do Mundo 2026 perto de você.",
+      },
+      { name: "theme-color", content: "#1B8F3A" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Jogo nas Ruas" },
+      { property: "og:title", content: "Jogo nas Ruas — Copa 2026" },
+      {
+        property: "og:description",
+        content: "Encontre bares, restaurantes e praças transmitindo a Copa 2026.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon-512.svg" },
+      { rel: "icon", href: "/icon-192.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,
@@ -96,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
@@ -113,7 +126,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="phone-frame">
+        <div className="phone-screen">
+          <Outlet />
+          <div className="grain-overlay" aria-hidden />
+        </div>
+        <div className="phone-notch" aria-hidden />
+      </div>
     </QueryClientProvider>
   );
 }
