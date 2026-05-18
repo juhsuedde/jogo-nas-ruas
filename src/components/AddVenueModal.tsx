@@ -39,16 +39,20 @@ const PERKS = [
 ] as const;
 
 const UPCOMING_MATCHES = [
-  { id: "m1", teams: "Brasil x Argentina", time: "Hoje · 16:00", flag: "🇧🇷" },
-  { id: "m2", teams: "França x Alemanha", time: "Hoje · 13:00", flag: "🇫🇷" },
-  { id: "m3", teams: "Portugal x Espanha", time: "Amanhã · 10:00", flag: "🇵🇹" },
-  { id: "m4", teams: "Brasil x México", time: "Quinta · 16:00", flag: "🇧🇷" },
-  { id: "m5", teams: "Inglaterra x Itália", time: "Quinta · 13:00", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-  { id: "m6", teams: "Holanda x Croácia", time: "Sexta · 10:00", flag: "🇳🇱" },
-  { id: "m7", teams: "Brasil x Uruguai", time: "Domingo · 16:00", flag: "🇧🇷" },
+  { id: "m1", teams: "Brasil x Argentina", time: "Hoje · 16:00", flag: "🇧🇷", matchTime: "16:00", isBr: true },
+  { id: "m2", teams: "França x Alemanha", time: "Hoje · 13:00", flag: "🇫🇷", matchTime: "13:00", isBr: false },
+  { id: "m3", teams: "Portugal x Espanha", time: "Amanhã · 10:00", flag: "🇵🇹", matchTime: "10:00", isBr: false },
+  { id: "m4", teams: "Brasil x México", time: "Quinta · 16:00", flag: "🇧🇷", matchTime: "16:00", isBr: true },
+  { id: "m5", teams: "Inglaterra x Itália", time: "Quinta · 13:00", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", matchTime: "13:00", isBr: false },
+  { id: "m6", teams: "Holanda x Croácia", time: "Sexta · 10:00", flag: "🇳🇱", matchTime: "10:00", isBr: false },
+  { id: "m7", teams: "Brasil x Uruguai", time: "Domingo · 16:00", flag: "🇧🇷", matchTime: "16:00", isBr: true },
 ];
 
+
 export function AddVenueModal({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const addVenue = useAddVenue();
   const [step, setStep] = useState(1);
   const [query, setQuery] = useState("");
   const [address, setAddress] = useState<Suggestion | null>(null);
@@ -57,6 +61,7 @@ export function AddVenueModal({ onClose }: { onClose: () => void }) {
   const [perks, setPerks] = useState<Set<string>>(new Set(["screen"]));
   const [matches, setMatches] = useState<Set<string>>(new Set(["m1"]));
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const togglePerk = (id: string) => {
     const next = new Set(perks);
@@ -78,10 +83,37 @@ export function AddVenueModal({ onClose }: { onClose: () => void }) {
     (step === 2 && name.trim().length > 1) ||
     (step === 3 && matches.size > 0);
 
-  const submit = () => {
-    setSent(true);
-    setTimeout(onClose, 1500);
+  const submit = async () => {
+    if (!user) {
+      navigate({ to: "/login" });
+      return;
+    }
+    if (!address) return;
+    setError(null);
+    try {
+      const chosen = UPCOMING_MATCHES.filter((m) => matches.has(m.id));
+      for (const m of chosen) {
+        await addVenue.mutateAsync({
+          name: name.trim(),
+          address: address.title + " · " + address.subtitle,
+          phone: phone || undefined,
+          lat: address.lat,
+          lng: address.lng,
+          city: address.subtitle.split("·").pop()?.trim() || "São Paulo",
+          match: m.teams,
+          matchTime: m.matchTime,
+          isBrazilMatch: m.isBr,
+          bigScreen: perks.has("screen"),
+          promo: perks.has("promo") ? "Promoção no local" : undefined,
+        });
+      }
+      setSent(true);
+      setTimeout(onClose, 1500);
+    } catch (e: any) {
+      setError(e?.message ?? "Erro ao cadastrar.");
+    }
   };
+
 
   return (
     <div className="absolute inset-0 z-[1000] bg-brasil-navy/40 flex items-end sm:items-center justify-center sm:p-3">
