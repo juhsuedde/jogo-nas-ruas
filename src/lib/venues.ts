@@ -133,7 +133,6 @@ export function useAddVenue() {
     mutationFn: async (input: {
       name: string;
       address: string;
-      phone?: string;
       lat: number;
       lng: number;
       city: string;
@@ -149,7 +148,6 @@ export function useAddVenue() {
         name: input.name,
         type: "bar",
         address: input.address,
-        phone: input.phone,
         lat: input.lat,
         lng: input.lng,
         city: input.city,

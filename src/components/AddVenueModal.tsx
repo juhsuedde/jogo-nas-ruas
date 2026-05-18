@@ -1,574 +1,483 @@
-import { useState, useEffect, useRef } from "react";
-import { X, ArrowLeft, MapPin, Search, Check, Loader2, Star } from "lucide-react";
-import { useAddVenue } from "@/lib/venues";
-import { useAuth } from "@/hooks/use-auth";
-import { useNavigate } from "@tanstack/react-router";
-import { searchPlaces, getPlaceDetails, type GooglePlace } from "@/lib/google-places";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Search, MapPin, Star, Loader2, ChevronLeft, Tv, Tag, Car } from "lucide-react";
+import { toast } from "sonner";
 
-type Suggestion = { id: string; title: string; subtitle: string; lat: number; lng: number };
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface PlaceSuggestion {
+  placeId: string;
+  title: string;
+  subtitle: string;
+}
 
-type PlaceSuggestion = {
-  place_id: string;
+interface Address {
+  title: string;
+  subtitle: string;
+  placeId: string;
+  lat: number;
+  lng: number;
+}
+
+interface GooglePlaceDetails {
   name: string;
-  formatted_address: string;
-};
+  photoUrl?: string;
+  rating?: number;
+  phone?: string; // disponível, mas não usamos no cadastro
+  website?: string;
+}
 
-const ADDRESS_SUGGESTIONS: Suggestion[] = [
-  {
-    id: "a1",
-    title: "Rua Augusta, 1200",
-    subtitle: "Consolação · São Paulo",
-    lat: -23.5558,
-    lng: -46.6622,
-  },
-  {
-    id: "a2",
-    title: "Praça Roosevelt, 100",
-    subtitle: "República · São Paulo",
-    lat: -23.5468,
-    lng: -46.6438,
-  },
-  {
-    id: "a3",
-    title: "Av. Paulista, 2500",
-    subtitle: "Bela Vista · São Paulo",
-    lat: -23.5614,
-    lng: -46.6566,
-  },
-];
-
+// ─── Constants ───────────────────────────────────────────────────────────────
 const PERKS = [
-  { id: "screen", emoji: "📺", label: "Tem Telão" },
-  { id: "promo", emoji: "🎁", label: "Tem Promoção" },
-  { id: "parking", emoji: "🅿️", label: "Tem Estacionamento" },
-] as const;
+  { id: "big-screen", label: "Tem Telão", icon: Tv },
+  { id: "promo", label: "Tem Promoção", icon: Tag },
+  { id: "parking", label: "Tem Estacionamento", icon: Car },
+];
 
 const UPCOMING_MATCHES = [
-  {
-    id: "m1",
-    teams: "Brasil x Argentina",
-    time: "Hoje · 16:00",
-    flag: "🇧🇷",
-    matchTime: "16:00",
-    isBr: true,
-  },
-  {
-    id: "m2",
-    teams: "França x Alemanha",
-    time: "Hoje · 13:00",
-    flag: "🇫🇷",
-    matchTime: "13:00",
-    isBr: false,
-  },
-  {
-    id: "m3",
-    teams: "Portugal x Espanha",
-    time: "Amanhã · 10:00",
-    flag: "🇵🇹",
-    matchTime: "10:00",
-    isBr: false,
-  },
-  {
-    id: "m4",
-    teams: "Brasil x México",
-    time: "Quinta · 16:00",
-    flag: "🇧🇷",
-    matchTime: "16:00",
-    isBr: true,
-  },
-  {
-    id: "m5",
-    teams: "Inglaterra x Itália",
-    time: "Quinta · 13:00",
-    flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-    matchTime: "13:00",
-    isBr: false,
-  },
-  {
-    id: "m6",
-    teams: "Holanda x Croácia",
-    time: "Sexta · 10:00",
-    flag: "🇳🇱",
-    matchTime: "10:00",
-    isBr: false,
-  },
-  {
-    id: "m7",
-    teams: "Brasil x Uruguai",
-    time: "Domingo · 16:00",
-    flag: "🇧🇷",
-    matchTime: "16:00",
-    isBr: true,
-  },
+  { id: "bra-x-arg", label: "Brasil x Argentina" },
+  { id: "bra-x-uru", label: "Brasil x Uruguai" },
+  { id: "bra-x-col", label: "Brasil x Colômbia" },
 ];
 
-export function AddVenueModal({ onClose }: { onClose: () => void }) {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const addVenue = useAddVenue();
+// ─── Component ───────────────────────────────────────────────────────────────
+interface AddVenueModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (venue: {
+    name: string;
+    address: Address;
+    perks: string[];
+    matches: string[];
+    googlePlaceId: string;
+  }) => void;
+}
+
+export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalProps) {
+  // Steps
   const [step, setStep] = useState(1);
+
+  // Search / Place selection
   const [query, setQuery] = useState("");
-  const [address, setAddress] = useState<Suggestion | null>(null);
-  const [googlePlace, setGooglePlace] = useState<GooglePlace | null>(null);
+  const [address, setAddress] = useState<Address | null>(null);
+  const [googlePlace, setGooglePlace] = useState<GooglePlaceDetails | null>(null);
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Venue data
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [perks, setPerks] = useState<Set<string>>(new Set(["screen"]));
-  const [matches, setMatches] = useState<Set<string>>(new Set(["m1"]));
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [perks, setPerks] = useState<Set<string>>(new Set());
+  const [matches, setMatches] = useState<Set<string>>(new Set());
 
+  // ─── Reset when modal opens ──────────────────────────────────────────────────
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
+    if (open) {
+      setStep(1);
+      setQuery("");
+      setAddress(null);
+      setGooglePlace(null);
+      setPlaceSuggestions([]);
+      setIsSearching(false);
+      setIsLoadingDetails(false);
+      setSearchError(null);
+      setName("");
+      setPerks(new Set());
+      setMatches(new Set());
     }
+  }, [open]);
 
+  // ─── Auto-fill name when Google Place details arrive ───────────────────────
+  useEffect(() => {
+    if (googlePlace?.name && !name) {
+      setName(googlePlace.name);
+    }
+  }, [googlePlace, name]);
+
+  // ─── Search debounce ───────────────────────────────────────────────────────
+  useEffect(() => {
     if (query.length < 2) {
       setPlaceSuggestions([]);
-      setSearchError(null);
       return;
     }
-
-    setIsSearching(true);
-    setSearchError(null);
-
-    searchTimeoutRef.current = setTimeout(async () => {
-      const results = await searchPlaces(query);
-      if (results.length === 0 && query.length >= 2) {
-        setSearchError("Não foi possível buscar locais. Tente novamente.");
-      }
-      setPlaceSuggestions(results);
-      setIsSearching(false);
+    const timer = setTimeout(() => {
+      handleSearch(query);
     }, 300);
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
+    return () => clearTimeout(timer);
   }, [query]);
 
-  const handleSelectPlace = async (place: PlaceSuggestion) => {
-    setIsLoadingDetails(true);
+  async function handleSearch(q: string) {
+    setIsSearching(true);
     setSearchError(null);
-    setQuery(place.formatted_address);
-
-    const details = await getPlaceDetails(place.place_id);
-    setIsLoadingDetails(false);
-
-    if (details) {
-      setGooglePlace(details);
-      setAddress({
-        id: place.place_id,
-        title: details.name,
-        subtitle: details.formatted_address,
-        lat: details.lat,
-        lng: details.lng,
-      });
-      if (details.name) setName(details.name);
-      if (details.phone) setPhone(details.phone);
-    } else {
-      setAddress({
-        id: place.place_id,
-        title: place.name,
-        subtitle: place.formatted_address,
-        lat: 0,
-        lng: 0,
-      });
-      setSearchError("Não foi possível obter detalhes. Continue manualmente.");
-    }
-    setPlaceSuggestions([]);
-  };
-
-  const togglePerk = (id: string) => {
-    const next = new Set(perks);
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-    setPerks(next);
-  };
-  const toggleMatch = (id: string) => {
-    const next = new Set(matches);
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-    setMatches(next);
-  };
-
-  const filteredSuggestions = ADDRESS_SUGGESTIONS.filter((s) =>
-    `${s.title} ${s.subtitle}`.toLowerCase().includes(query.toLowerCase()),
-  );
-
-  const canAdvance =
-    (step === 1 && !!address) ||
-    (step === 2 && name.trim().length > 1) ||
-    (step === 3 && matches.size > 0);
-
-  const submit = async () => {
-    if (!user) {
-      navigate({ to: "/login" });
-      return;
-    }
-    if (!address) return;
-    setError(null);
     try {
-      const chosen = UPCOMING_MATCHES.filter((m) => matches.has(m.id));
-      for (const m of chosen) {
-        await addVenue.mutateAsync({
-          name: name.trim(),
-          address: address.title + " · " + address.subtitle,
-          phone: phone || undefined,
-          lat: address.lat,
-          lng: address.lng,
-          city: address.subtitle.split("·").pop()?.trim() || "São Paulo",
-          match: m.teams,
-          matchTime: m.matchTime,
-          isBrazilMatch: m.isBr,
-          bigScreen: perks.has("screen"),
-          promo: perks.has("promo") ? "Promoção no local" : undefined,
-        });
-      }
-      setSent(true);
-      setTimeout(onClose, 1500);
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "Erro ao cadastrar.";
-      setError(message);
+      const res = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(q)}`);
+      if (!res.ok) throw new Error("Erro na busca");
+      const data = await res.json();
+      setPlaceSuggestions(data.predictions || []);
+    } catch (e) {
+      setSearchError("Não foi possível buscar locais. Tente novamente.");
+      setPlaceSuggestions([]);
+    } finally {
+      setIsSearching(false);
     }
-  };
+  }
 
+  async function handleSelectPlace(suggestion: PlaceSuggestion) {
+    setAddress({
+      title: suggestion.title,
+      subtitle: suggestion.subtitle,
+      placeId: suggestion.placeId,
+      lat: 0,
+      lng: 0,
+    });
+    setPlaceSuggestions([]);
+    setQuery("");
+    setIsLoadingDetails(true);
+
+    try {
+      const res = await fetch(`/api/places/details?placeId=${suggestion.placeId}`);
+      if (!res.ok) throw new Error("Erro ao carregar detalhes");
+      const data = await res.json();
+      setGooglePlace({
+        name: data.name,
+        photoUrl: data.photoUrl,
+        rating: data.rating,
+        phone: data.phone, // guardamos, mas não exibimos no cadastro
+        website: data.website,
+      });
+      // Preenche nome imediatamente
+      if (data.name) setName(data.name);
+      // Atualiza coordenadas se vierem
+      if (data.lat && data.lng) {
+        setAddress((prev) => (prev ? { ...prev, lat: data.lat, lng: data.lng } : prev));
+      }
+    } catch (e) {
+      toast({
+        title: "Erro ao carregar detalhes",
+        description: "Usando informações básicas do endereço.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  }
+
+  function togglePerk(id: string) {
+    setPerks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleMatch(id: string) {
+    setMatches((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function handleNext() {
+    if (step === 1) {
+      if (!address) {
+        toast({ title: "Selecione um local", variant: "destructive" });
+        return;
+      }
+      if (!name.trim()) {
+        toast({ title: "Nome do local é obrigatório", variant: "destructive" });
+        return;
+      }
+      setStep(2);
+    } else if (step === 2) {
+      setStep(3);
+    }
+  }
+
+  function handleBack() {
+    if (step > 1) setStep((s) => s - 1);
+  }
+
+  function handleSubmit() {
+    if (!address || !name.trim()) return;
+    onSubmit({
+      name: name.trim(),
+      address,
+      perks: Array.from(perks),
+      matches: Array.from(matches),
+      googlePlaceId: address.placeId,
+    });
+    onOpenChange(false);
+    toast({ title: "Local cadastrado com sucesso!" });
+  }
+
+  // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="absolute inset-0 z-[1000] bg-brasil-navy/40 flex items-end sm:items-center justify-center sm:p-3">
-      <div className="w-full sm:max-w-md bg-card sm:rounded-3xl rounded-t-3xl handmade-border-yellow flex flex-col max-h-[92vh]">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 pb-2">
-          <h1 className="font-display text-lg text-brasil-navy">{sent ? "" : "cadastrar local"}</h1>
-          <button
-            onClick={onClose}
-            className="size-9 rounded-full bg-muted flex items-center justify-center"
-            aria-label="Fechar"
-          >
-            <X className="size-4" />
-          </button>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle className="text-xl font-bold text-brasil-navy uppercase tracking-wide">
+            {step === 1 && "Cadastrar Local"}
+            {step === 2 && "Conta pra Gente"}
+            {step === 3 && "Quais Jogos?"}
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Step indicator */}
+        <div className="px-6 pb-4 flex items-center gap-2">
+          {[1, 2, 3].map((s) => (
+            <div
+              key={s}
+              className={`h-2 flex-1 rounded-full transition-colors ${
+                s <= step ? "bg-brasil-green" : "bg-brasil-navy/20"
+              }`}
+            />
+          ))}
         </div>
 
-        {sent ? (
-          <div className="px-6 py-12 text-center">
-            <div className="text-6xl mb-4">⚽</div>
-            <p className="font-display text-xl text-brasil-green">local cadastrado!</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Já tá no mapa como "Novo". Valeu pela contribuição!
+        {/* ─── STEP 1: Localização ─────────────────────────────────────────── */}
+        {step === 1 && (
+          <div className="px-6 pb-6 space-y-4">
+            <p className="text-sm text-brasil-navy/70">
+              Busque o endereço do local. Selecione o resultado correto.
             </p>
-          </div>
-        ) : (
-          <>
-            {/* Step indicator */}
-            <div className="flex items-center justify-center gap-2 pb-3">
-              {[1, 2, 3].map((n) => (
-                <div
-                  key={n}
-                  className={`h-2.5 rounded-full transition-all ${
-                    n === step
-                      ? "w-8 bg-brasil-green"
-                      : n < step
-                        ? "w-2.5 bg-brasil-navy"
-                        : "w-2.5 bg-brasil-navy/20"
-                  }`}
-                />
-              ))}
+
+            {/* Search input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brasil-navy/40" />
+              <Input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setAddress(null);
+                }}
+                placeholder="Digite rua, número, bairro…"
+                className="pl-10 rounded-xl border-2 border-brasil-navy/30 focus:border-brasil-green"
+              />
             </div>
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto px-4 pb-2">
-              {step === 1 && (
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-display text-brasil-navy text-base mb-1">onde fica?</p>
-                    <p className="text-xs text-muted-foreground">busque o endereço do local</p>
+            {/* Suggestions */}
+            {!address && query.length > 0 && (
+              <div className="space-y-2">
+                {isSearching && (
+                  <div className="flex items-center gap-2 text-sm text-brasil-navy/60 py-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Buscando...
                   </div>
-                  <div className="rounded-2xl bg-background handmade-border flex items-center gap-2 px-4 py-3">
-                    <Search className="size-4 text-brasil-navy" />
-                    <input
-                      autoFocus
-                      value={query}
-                      onChange={(e) => {
-                        setQuery(e.target.value);
-                        setAddress(null);
-                      }}
-                      placeholder="Digite rua, número, bairro…"
-                      aria-label="Buscar endereço do local"
-                      className="flex-1 bg-transparent outline-none text-base placeholder:text-brasil-navy/40"
-                    />
+                )}
+                {!isSearching && placeSuggestions.length > 0 && (
+                  <div className="border rounded-xl overflow-hidden border-brasil-navy/20">
+                    {placeSuggestions.map((s) => (
+                      <button
+                        key={s.placeId}
+                        onClick={() => handleSelectPlace(s)}
+                        className="w-full text-left px-4 py-3 hover:bg-brasil-green/10 transition-colors flex items-start gap-3 border-b last:border-b-0 border-brasil-navy/10"
+                      >
+                        <MapPin className="w-4 h-4 mt-0.5 text-brasil-green shrink-0" />
+                        <div>
+                          <p className="font-medium text-brasil-navy text-sm">{s.title}</p>
+                          <p className="text-xs text-brasil-navy/60">{s.subtitle}</p>
+                        </div>
+                      </button>
+                    ))}
                   </div>
+                )}
+                {!isSearching && placeSuggestions.length === 0 && query.length >= 2 && (
+                  <p className="text-sm text-brasil-navy/50 py-2">
+                    Digite o nome de um bar, restaurante ou café…
+                  </p>
+                )}
+                {searchError && <p className="text-sm text-red-500 py-2">{searchError}</p>}
+              </div>
+            )}
 
-                  {!address && query.length > 0 && (
-                    <div className="space-y-2">
-                      {isSearching && (
-                        <div className="flex items-center gap-2 p-3 text-muted-foreground">
-                          <Loader2 className="size-4 animate-spin" />
-                          <span className="text-sm">Buscando...</span>
-                        </div>
-                      )}
-                      {!isSearching && placeSuggestions.length > 0 && (
-                        <div className="bg-[#0A2540] rounded-2xl overflow-hidden border-2 border-brasil-yellow/30 max-h-60 overflow-y-auto">
-                          {placeSuggestions.map((s) => (
-                            <button
-                              key={s.place_id}
-                              onClick={() => handleSelectPlace(s)}
-                              className="w-full flex items-center gap-3 p-3 text-left text-white hover:bg-brasil-yellow/20 transition-colors border-b border-white/10 last:border-b-0"
-                            >
-                              <div className="size-9 rounded-full bg-brasil-yellow/30 flex items-center justify-center shrink-0">
-                                <MapPin className="size-4 text-brasil-yellow" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-sm truncate">{s.name}</p>
-                                <p className="text-xs text-white/60 truncate">
-                                  {s.formatted_address}
-                                </p>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      {!isSearching && placeSuggestions.length === 0 && query.length >= 2 && (
-                        <div className="p-3 text-center">
-                          <p className="text-sm text-muted-foreground">
-                            Digite o nome de um bar, restaurante ou café...
-                          </p>
-                        </div>
-                      )}
-                      {searchError && (
-                        <p className="text-sm text-red-600 text-center py-2">{searchError}</p>
-                      )}
-                    </div>
-                  )}
-
-                  {address && (
-                    <div className="rounded-2xl overflow-hidden handmade-border">
-                      {isLoadingDetails ? (
-                        <div className="h-40 flex items-center justify-center bg-brasil-navy/5">
-                          <Loader2 className="size-8 text-brasil-navy animate-spin" />
-                        </div>
-                      ) : googlePlace?.photoUrl ? (
-                        <div className="h-40 relative">
-                          <img
-                            src={googlePlace.photoUrl}
-                            alt={googlePlace.name}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          {googlePlace.rating && (
-                            <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 px-2 py-1 rounded-full">
-                              <Star className="size-3 text-brasil-yellow fill-brasil-yellow" />
-                              <span className="text-xs font-bold text-brasil-navy">
-                                {googlePlace.rating.toFixed(1)}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div
-                          className="h-40 relative"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, oklch(0.92 0.05 145) 0%, oklch(0.88 0.08 95) 100%)",
-                            backgroundImage:
-                              "radial-gradient(oklch(0.32 0.13 265 / 0.08) 1px, transparent 1px), radial-gradient(oklch(0.32 0.13 265 / 0.08) 1px, transparent 1px)",
-                            backgroundSize: "20px 20px, 20px 20px",
-                            backgroundPosition: "0 0, 10px 10px",
-                          }}
-                        >
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="size-14 rounded-full bg-brasil-green flex items-center justify-center handmade-border animate-bounce">
-                              <MapPin className="size-6 text-white" fill="currentColor" />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="p-3 bg-card flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                          {googlePlace ? (
-                            <Check className="size-4 text-brasil-green shrink-0" />
-                          ) : (
-                            <MapPin className="size-4 text-brasil-navy/50 shrink-0" />
-                          )}
-                          <div className="min-w-0">
-                            <p className="font-bold text-brasil-navy text-sm truncate">
-                              {address.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {address.subtitle}
-                            </p>
-                          </div>
-                        </div>
-                        {googlePlace && (
-                          <div className="flex items-center gap-1.5 text-[10px] text-brasil-green font-semibold bg-brasil-green/10 px-2 py-1 rounded-full w-fit">
-                            <Check className="size-3" />
-                            Dados confirmados pelo Google Maps
+            {/* Selected address card */}
+            {address && (
+              <div className="rounded-xl border-2 border-brasil-green/40 bg-brasil-green/5 p-4 space-y-3">
+                {isLoadingDetails ? (
+                  <div className="flex items-center gap-2 text-sm text-brasil-navy/60">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Carregando detalhes…
+                  </div>
+                ) : (
+                  <>
+                    {googlePlace?.photoUrl ? (
+                      <div className="relative aspect-video rounded-lg overflow-hidden">
+                        <img
+                          src={googlePlace.photoUrl}
+                          alt={address.title}
+                          className="w-full h-full object-cover"
+                        />
+                        {googlePlace.rating && (
+                          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold text-brasil-navy shadow-sm">
+                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                            {googlePlace.rating.toFixed(1)}
                           </div>
                         )}
                       </div>
+                    ) : (
+                      <div className="aspect-video rounded-lg bg-brasil-navy/10 flex items-center justify-center">
+                        <MapPin className="w-8 h-8 text-brasil-navy/30" />
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="font-bold text-brasil-navy">{address.title}</p>
+                      <p className="text-sm text-brasil-navy/70">{address.subtitle}</p>
+                      {googlePlace && (
+                        <p className="text-xs text-brasil-green mt-1 flex items-center gap-1">
+                          <Star className="w-3 h-3" />
+                          Dados confirmados pelo Google Maps
+                        </p>
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
-
-              {step === 2 && (
-                <div className="space-y-4">
-                  <div>
-                    <p className="font-display text-brasil-navy text-base mb-1">conta pra gente</p>
-                    <p className="text-xs text-muted-foreground">
-                      nome, telefone e o que rola por lá
-                    </p>
-                  </div>
-
-                  <label className="block">
-                    <span className="text-xs font-bold text-brasil-navy uppercase">
-                      Nome do local
-                    </span>
-                    <input
-                      autoFocus
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Ex: Boteco do Zé"
-                      className="mt-1 w-full rounded-xl border-2 border-brasil-navy/30 bg-background px-3 py-2.5 focus:border-brasil-green outline-none"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-xs font-bold text-brasil-navy uppercase">Telefone</span>
-                    <input
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="(11) 99999-9999"
-                      inputMode="tel"
-                      className="mt-1 w-full rounded-xl border-2 border-brasil-navy/30 bg-background px-3 py-2.5 focus:border-brasil-green outline-none"
-                    />
-                  </label>
-
-                  <div>
-                    <span className="text-xs font-bold text-brasil-navy uppercase">
-                      O que tem no local?
-                    </span>
-                    <div className="mt-2 grid grid-cols-1 gap-2">
-                      {PERKS.map((p) => {
-                        const active = perks.has(p.id);
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => togglePerk(p.id)}
-                            className={`flex items-center gap-3 p-3 rounded-2xl border-2 text-left transition-all ${
-                              active
-                                ? "border-brasil-green bg-brasil-green/10"
-                                : "border-brasil-navy/20 bg-background"
-                            }`}
-                          >
-                            <div className="text-2xl">{p.emoji}</div>
-                            <span className="flex-1 font-bold text-brasil-navy">{p.label}</span>
-                            <div
-                              className={`size-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                active
-                                  ? "border-brasil-green bg-brasil-green"
-                                  : "border-brasil-navy/30"
-                              }`}
-                            >
-                              {active && <Check className="size-3.5 text-white" strokeWidth={3} />}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {step === 3 && (
-                <div className="space-y-3">
-                  <div>
-                    <p className="font-display text-brasil-navy text-base mb-1">
-                      quais jogos vão passar?
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      escolha um ou mais. dá pra editar depois.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    {UPCOMING_MATCHES.map((m) => {
-                      const active = matches.has(m.id);
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => toggleMatch(m.id)}
-                          className={`w-full flex items-center gap-3 p-3 rounded-2xl border-2 text-left transition-all ${
-                            active
-                              ? "border-brasil-green bg-brasil-green/10"
-                              : "border-brasil-navy/20 bg-background"
-                          }`}
-                        >
-                          <div className="text-2xl">{m.flag}</div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-bold text-brasil-navy text-sm truncate">{m.teams}</p>
-                            <p className="text-xs text-muted-foreground">{m.time}</p>
-                          </div>
-                          <div
-                            className={`size-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
-                              active
-                                ? "border-brasil-green bg-brasil-green"
-                                : "border-brasil-navy/30"
-                            }`}
-                          >
-                            {active && <Check className="size-3.5 text-white" strokeWidth={3} />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 pt-3 flex gap-2 border-t-2 border-brasil-navy/10">
-              {step > 1 && (
-                <button
-                  onClick={() => setStep(step - 1)}
-                  className="rounded-2xl bg-background border-2 border-brasil-navy/30 font-bold text-brasil-navy px-5 py-3 flex items-center gap-1.5"
-                >
-                  <ArrowLeft className="size-4" />
-                  Voltar
-                </button>
-              )}
-              {step < 3 ? (
-                <button
-                  disabled={!canAdvance}
-                  onClick={() => setStep(step + 1)}
-                  className="flex-1 rounded-2xl bg-brasil-green text-white font-display text-base py-3 handmade-border disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Próximo
-                </button>
-              ) : (
-                <button
-                  disabled={!canAdvance || addVenue.isPending}
-                  onClick={submit}
-                  className="flex-1 rounded-2xl bg-brasil-yellow text-brasil-navy font-display text-base py-3 handmade-border disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {addVenue.isPending ? "ENVIANDO..." : "ADICIONAR NO MAPA"}
-                </button>
-              )}
-            </div>
-            {error && <p className="px-4 pb-3 text-sm text-red-600 text-center -mt-1">{error}</p>}
-          </>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         )}
-      </div>
-    </div>
+
+        {/* ─── STEP 2: Informações do local ────────────────────────────────── */}
+        {step === 2 && (
+          <div className="px-6 pb-6 space-y-5">
+            <p className="text-sm text-brasil-navy/70">Nome, endereço e o que rola por lá</p>
+
+            {/* Name — preenchido automaticamente, mas editável */}
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="venue-name"
+                className="text-brasil-navy font-semibold text-sm uppercase tracking-wide"
+              >
+                Nome do Local
+              </Label>
+              <Input
+                id="venue-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Boteco do Zé"
+                className="rounded-xl border-2 border-brasil-navy/30 bg-background px-3 py-2.5 focus:border-brasil-green outline-none"
+              />
+              {googlePlace?.name && name !== googlePlace.name && (
+                <button
+                  onClick={() => setName(googlePlace.name || "")}
+                  className="text-xs text-brasil-green hover:underline"
+                >
+                  Restaurar nome original: {googlePlace.name}
+                </button>
+              )}
+            </div>
+
+            {/* Address — read-only, vem do Google */}
+            <div className="space-y-1.5">
+              <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
+                Endereço
+              </Label>
+              <div className="rounded-xl border-2 border-brasil-navy/20 bg-brasil-navy/5 px-3 py-2.5 text-sm text-brasil-navy/80">
+                <p className="font-medium">{address?.title}</p>
+                <p>{address?.subtitle}</p>
+              </div>
+            </div>
+
+            {/* Perks */}
+            <div className="space-y-2">
+              <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
+                O que tem no local?
+              </Label>
+              <div className="space-y-2">
+                {PERKS.map((p) => {
+                  const Icon = p.icon;
+                  const active = perks.has(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => togglePerk(p.id)}
+                      className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
+                        active
+                          ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
+                          : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3 text-sm font-medium">
+                        <Icon className="w-5 h-5" />
+                        {p.label}
+                      </span>
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                          active ? "border-brasil-green bg-brasil-green" : "border-brasil-navy/30"
+                        }`}
+                      >
+                        {active && <span className="text-white text-xs">✓</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── STEP 3: Jogos ──────────────────────────────────────────────── */}
+        {step === 3 && (
+          <div className="px-6 pb-6 space-y-5">
+            <p className="text-sm text-brasil-navy/70">Escolha um ou mais. Dá pra editar depois.</p>
+            <div className="space-y-2">
+              {UPCOMING_MATCHES.map((m) => {
+                const active = matches.has(m.id);
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => toggleMatch(m.id)}
+                    className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
+                      active
+                        ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
+                        : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{m.label}</span>
+                    <Checkbox checked={active} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ─── Footer buttons ─────────────────────────────────────────────── */}
+        <div className="px-6 pb-6 pt-2 flex items-center gap-3">
+          {step > 1 && (
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="flex-1 rounded-xl border-2 border-brasil-navy/30"
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              Voltar
+            </Button>
+          )}
+          {step < 3 ? (
+            <Button
+              onClick={handleNext}
+              className="flex-1 rounded-xl bg-brasil-green hover:bg-brasil-green/90 text-white font-bold uppercase tracking-wider"
+            >
+              Próximo
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              className="flex-1 rounded-xl bg-brasil-green hover:bg-brasil-green/90 text-white font-bold uppercase tracking-wider"
+            >
+              Cadastrar
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
