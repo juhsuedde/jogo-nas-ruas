@@ -1,11 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, lazy, Suspense } from "react";
 import { Plus, Search } from "lucide-react";
 import { FILTERS, VENUES, type FilterId } from "@/data/venues";
 import { BottomSheet } from "@/components/BottomSheet";
 import { VenueCard } from "@/components/VenueCard";
 import { VenueDetail } from "@/components/VenueDetail";
-import { AddVenueModal } from "@/components/AddVenueModal";
 
 const MapView = lazy(() =>
   import("@/components/MapView").then((m) => ({ default: m.MapView })),
