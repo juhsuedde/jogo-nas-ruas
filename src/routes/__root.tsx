@@ -11,6 +11,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { PwaRegister } from "@/components/PwaRegister";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 import { Toaster } from "@/components/ui/sonner";
+import { FcmForegroundToast } from "@/components/FcmForegroundToast";
 
 import appCss from "../styles.css?url";
 
@@ -142,6 +143,7 @@ function RootComponent() {
           <div className="phone-notch" aria-hidden />
         </div>
         <Toaster position="top-center" richColors />
+        <FcmForegroundToast />
         <PwaRegister />
       </AuthProvider>
     </QueryClientProvider>
