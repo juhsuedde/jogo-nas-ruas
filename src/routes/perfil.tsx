@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   Star,
@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
+import { useAuth } from "@/hooks/use-auth";
+
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
