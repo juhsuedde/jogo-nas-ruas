@@ -21,6 +21,13 @@ export function BottomNav() {
             <Link
               key={to}
               to={to}
+              aria-label={
+                to === "/add"
+                  ? "Cadastrar novo local"
+                  : to === "/mapa"
+                    ? "Abrir mapa"
+                    : "Abrir perfil"
+              }
               className="flex-1 flex justify-center"
               activeProps={{ "data-active": "true" } as never}
             >
