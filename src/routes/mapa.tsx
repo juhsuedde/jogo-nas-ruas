@@ -88,12 +88,13 @@ function MapPage() {
               className="flex-1 bg-transparent outline-none text-sm placeholder:text-brasil-navy/50"
             />
             <Link
-              to="/perfil"
+              to={user ? "/perfil" : "/login"}
               aria-label="Meu perfil"
               className="size-7 rounded-full bg-brasil-green flex items-center justify-center text-white font-display text-[11px] shrink-0"
             >
-              LA
+              {initials}
             </Link>
+
           </div>
           <Link
             to="/add"
