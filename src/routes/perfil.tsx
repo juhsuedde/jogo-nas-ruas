@@ -111,7 +111,7 @@ const MY_VENUES = [
 
 function PerfilPage() {
   return (
-    <main className="min-h-screen pb-28">
+    <main className="absolute inset-0 overflow-y-auto pb-28">
       <BottomNav />
       {/* Header */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b-2 border-brasil-navy/10">
