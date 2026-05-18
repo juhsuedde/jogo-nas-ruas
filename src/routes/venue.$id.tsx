@@ -10,9 +10,70 @@ import { supabase } from "@/lib/supabase";
 
 
 export const Route = createFileRoute("/venue/$id")({
-  head: ({ params }) => ({
-    meta: [{ title: `Local — Jogo nas Ruas` }],
-  }),
+  loader: async ({ params }) => {
+    const { data } = await supabase
+      .from("venues")
+      .select("id,name,address,city,phone,lat,lng,match,match_time")
+      .eq("id", params.id)
+      .maybeSingle();
+    return { venueMeta: data };
+  },
+  head: ({ params, loaderData }) => {
+    const v = loaderData?.venueMeta as
+      | {
+          name: string;
+          address: string;
+          city: string;
+          phone: string | null;
+          lat: number;
+          lng: number;
+          match: string;
+          match_time: string;
+        }
+      | null
+      | undefined;
+    const url = `https://jogonasruas.lovable.app/venue/${params.id}`;
+    const title = v
+      ? `${v.name} — ${v.match} ao vivo | Jogo nas Ruas`
+      : "Local — Jogo nas Ruas";
+    const description = v
+      ? `Assista ${v.match} no ${v.name} (${v.address}). Confirme presença e veja quem mais vai.`
+      : "Veja onde assistir aos jogos da Copa 2026 perto de você.";
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "article" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: v
+        ? [
+            {
+              type: "application/ld+json",
+              children: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "LocalBusiness",
+                name: v.name,
+                address: v.address,
+                ...(v.phone ? { telephone: v.phone } : {}),
+                geo: {
+                  "@type": "GeoCoordinates",
+                  latitude: v.lat,
+                  longitude: v.lng,
+                },
+                url,
+                addressLocality: v.city,
+              }),
+            },
+          ]
+        : [],
+    };
+  },
   component: VenuePage,
 });
 
