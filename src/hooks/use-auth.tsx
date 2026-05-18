@@ -18,7 +18,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
     });
     supabase.auth.getSession().then(({ data }) => {
@@ -40,7 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
+        options: {
+          emailRedirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        },
       });
       return { error: error?.message ?? null };
     },

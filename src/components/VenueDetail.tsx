@@ -31,9 +31,7 @@ export function VenueDetail({
 
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl text-brasil-navy leading-tight">
-            {venue.name}
-          </h1>
+          <h1 className="font-display text-2xl text-brasil-navy leading-tight">{venue.name}</h1>
           <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
             <MapPin className="size-3.5" /> {venue.address}
           </p>
@@ -46,15 +44,9 @@ export function VenueDetail({
       </div>
 
       <div className="mt-4 rounded-2xl bg-secondary/60 border-2 border-brasil-navy/20 p-4">
-        <div className="text-xs font-bold uppercase text-brasil-navy/70">
-          Transmissão
-        </div>
-        <div className="font-display text-xl text-brasil-navy mt-1">
-          {venue.match}
-        </div>
-        <div className="text-sm text-brasil-navy font-bold">
-          Hoje · {venue.matchTime}
-        </div>
+        <div className="text-xs font-bold uppercase text-brasil-navy/70">Transmissão</div>
+        <div className="font-display text-xl text-brasil-navy mt-1">{venue.match}</div>
+        <div className="text-sm text-brasil-navy font-bold">Hoje · {venue.matchTime}</div>
         {venue.bigScreen && (
           <div className="flex items-center gap-1.5 text-xs font-bold text-brasil-navy mt-2">
             <Tv className="size-3.5" /> Telão confirmado
@@ -66,12 +58,8 @@ export function VenueDetail({
         <div className="flex items-center gap-2">
           <Users className="size-5 text-brasil-green" />
           <div>
-            <div className="font-display text-2xl text-brasil-navy leading-none">
-              {count}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              torcedores confirmados
-            </div>
+            <div className="font-display text-2xl text-brasil-navy leading-none">{count}</div>
+            <div className="text-xs text-muted-foreground">torcedores confirmados</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -84,9 +72,7 @@ export function VenueDetail({
               >
                 −
               </button>
-              <span className="font-display text-base w-5 text-center">
-                {guests}
-              </span>
+              <span className="font-display text-base w-5 text-center">{guests}</span>
               <button
                 onClick={() => onChangeGuests(guests + 1)}
                 aria-label="Aumentar número de acompanhantes"
@@ -111,12 +97,8 @@ export function VenueDetail({
         <div className="mt-3 rounded-2xl bg-brasil-yellow/40 border-2 border-brasil-navy/30 p-4 flex items-start gap-2.5">
           <Sparkles className="size-5 text-brasil-navy shrink-0 mt-0.5" />
           <div>
-            <div className="text-xs font-bold uppercase text-brasil-navy/70">
-              Promoção
-            </div>
-            <p className="text-sm text-brasil-navy font-semibold">
-              {venue.promo}
-            </p>
+            <div className="text-xs font-bold uppercase text-brasil-navy/70">Promoção</div>
+            <p className="text-sm text-brasil-navy font-semibold">{venue.promo}</p>
           </div>
         </div>
       )}

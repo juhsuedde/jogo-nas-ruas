@@ -54,10 +54,7 @@ export function useVenues() {
       }
       if (!data || data.length === 0) return MOCK_VENUES;
       return (data as (VenueRow & { rsvps: { guests: number }[] })[]).map((r) =>
-        rowToVenue(
-          r,
-          r.rsvps?.reduce((a, b) => a + (b.guests ?? 1), 0) ?? 0,
-        ),
+        rowToVenue(r, r.rsvps?.reduce((a, b) => a + (b.guests ?? 1), 0) ?? 0),
       );
     },
     staleTime: 30_000,
@@ -77,10 +74,7 @@ export function useVenue(id: string) {
         return MOCK_VENUES.find((v) => v.id === id) ?? null;
       }
       const row = data as VenueRow & { rsvps: { guests: number }[] };
-      return rowToVenue(
-        row,
-        row.rsvps?.reduce((a, b) => a + (b.guests ?? 1), 0) ?? 0,
-      );
+      return rowToVenue(row, row.rsvps?.reduce((a, b) => a + (b.guests ?? 1), 0) ?? 0);
     },
   });
 }

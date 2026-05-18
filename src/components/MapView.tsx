@@ -33,6 +33,21 @@ const activeIcon = L.divIcon({
   iconAnchor: [23, 46],
 });
 
+const searchIcon = L.divIcon({
+  className: "",
+  html: `<div style="
+    width:40px;height:40px;border-radius:50% 50% 50% 0;
+    background:#FFDF00;
+    border:3px solid #0A2540;
+    transform:rotate(-45deg);
+    box-shadow:3px 3px 0 #0A2540;
+    display:flex;align-items:center;justify-content:center;">
+    <div style="transform:rotate(45deg);color:#0A2540;font-weight:900;font-size:20px;">📍</div>
+  </div>`,
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+});
+
 function FlyTo({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
   useEffect(() => {
@@ -45,21 +60,27 @@ export function MapView({
   venues,
   activeId,
   onSelect,
+  center,
+  zoom,
+  selectedPlace,
 }: {
   venues: Venue[];
   activeId: string | null;
   onSelect: (id: string) => void;
+  center?: [number, number];
+  zoom?: number;
+  selectedPlace?: { lat: number; lng: number; name: string } | null;
 }) {
   const active = venues.find((v) => v.id === activeId);
   return (
     <MapContainer
-      center={[-23.5558, -46.6622]}
-      zoom={13}
+      center={center ?? [-23.5558, -46.6622]}
+      zoom={zoom ?? 13}
       zoomControl={false}
       className="absolute inset-0 h-full w-full"
     >
       <TileLayer
-        attribution='&copy; OpenStreetMap'
+        attribution="&copy; OpenStreetMap"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {venues.map((v) => (
@@ -70,7 +91,13 @@ export function MapView({
           eventHandlers={{ click: () => onSelect(v.id) }}
         />
       ))}
+      {selectedPlace && selectedPlace.lat !== 0 && (
+        <Marker position={[selectedPlace.lat, selectedPlace.lng]} icon={searchIcon} />
+      )}
       {active && <FlyTo lat={active.lat} lng={active.lng} />}
+      {selectedPlace && selectedPlace.lat !== 0 && (
+        <FlyTo lat={selectedPlace.lat} lng={selectedPlace.lng} />
+      )}
     </MapContainer>
   );
 }

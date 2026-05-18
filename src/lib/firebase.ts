@@ -19,14 +19,12 @@ const firebaseConfig = {
 const VAPID_KEY =
   "BIjxcIaAsoIWrs2QTcDL5U6s3dBHHLG_ckABEdQF8Ez9jCoo7j5JdRk_DIbYgUT25zWvP2n4sVwBCAnyWtkW9KY";
 
-const app =
-  typeof window !== "undefined" ? initializeApp(firebaseConfig) : null;
+const app = typeof window !== "undefined" ? initializeApp(firebaseConfig) : null;
 
 let _messaging: Messaging | null = null;
 function getMessagingSafe(): Messaging | null {
   if (typeof window === "undefined" || !app) return null;
-  if (!("Notification" in window) || !("serviceWorker" in navigator))
-    return null;
+  if (!("Notification" in window) || !("serviceWorker" in navigator)) return null;
   if (!_messaging) {
     try {
       _messaging = getMessaging(app);
@@ -46,9 +44,7 @@ export async function requestNotificationPermission(): Promise<string | null> {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return null;
 
-    const registration = await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js",
-    );
+    const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
     const token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
@@ -62,9 +58,7 @@ export async function requestNotificationPermission(): Promise<string | null> {
   }
 }
 
-export function onForegroundMessage(
-  callback: (payload: MessagePayload) => void,
-) {
+export function onForegroundMessage(callback: (payload: MessagePayload) => void) {
   const messaging = getMessagingSafe();
   if (!messaging) return () => {};
   return onMessage(messaging, callback);

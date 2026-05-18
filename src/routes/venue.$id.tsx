@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { requestNotificationPermission } from "@/lib/firebase";
 import { supabase } from "@/lib/supabase";
 
-
 export const Route = createFileRoute("/venue/$id")({
   loader: async ({ params }) => {
     const { data } = await supabase
@@ -33,9 +32,7 @@ export const Route = createFileRoute("/venue/$id")({
       | null
       | undefined;
     const url = `https://jogonasruas.lovable.app/venue/${params.id}`;
-    const title = v
-      ? `${v.name} — ${v.match} ao vivo | Jogo nas Ruas`
-      : "Local — Jogo nas Ruas";
+    const title = v ? `${v.name} — ${v.match} ao vivo | Jogo nas Ruas` : "Local — Jogo nas Ruas";
     const description = v
       ? `Assista ${v.match} no ${v.name} (${v.address}). Confirme presença e veja quem mais vai.`
       : "Veja onde assistir aos jogos da Copa 2026 perto de você.";
@@ -89,9 +86,10 @@ function VenuePage() {
   const [guests, setGuests] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
-  const shareUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/venue/${id}`
-    : `https://jogonasruas.lovable.app/venue/${id}`;
+  const shareUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/venue/${id}`
+      : `https://jogonasruas.lovable.app/venue/${id}`;
 
   const handleShare = useCallback(() => {
     if (!venue) return;
@@ -99,10 +97,8 @@ function VenuePage() {
     const text = "Encontrei esse lugar no Jogo nas Ruas. Bora?";
     const url = shareUrl;
 
-    if ((navigator as any).share) {
-      (navigator as any)
-        .share({ title, text, url })
-        .catch(() => {});
+    if ("share" in navigator && typeof navigator.share === "function") {
+      navigator.share({ title, text, url }).catch(() => {});
     } else {
       navigator.clipboard
         .writeText(`${title}\n${text}\n${url}`)
@@ -110,7 +106,6 @@ function VenuePage() {
         .catch(() => toast.error("Erro ao copiar link."));
     }
   }, [venue, shareUrl]);
-
 
   useEffect(() => {
     if (myRsvp) {
@@ -132,9 +127,7 @@ function VenuePage() {
   if (!venue) {
     return (
       <main className="absolute inset-0 bg-background grid place-items-center p-6">
-        <p className="font-display text-xl text-brasil-navy text-center">
-          local não encontrado
-        </p>
+        <p className="font-display text-xl text-brasil-navy text-center">local não encontrado</p>
       </main>
     );
   }
@@ -156,16 +149,14 @@ function VenuePage() {
         if (token) {
           const { error: insErr } = await supabase
             .from("fcm_tokens")
-            .upsert(
-              { user_id: user.id, token },
-              { onConflict: "token" },
-            );
+            .upsert({ user_id: user.id, token }, { onConflict: "token" });
           if (insErr) console.error("fcm_tokens upsert:", insErr);
           toast.success("Você receberá um lembrete 1h antes do jogo!");
         }
       }
-    } catch (e: any) {
-      setError(e?.message ?? "Erro ao confirmar.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Erro ao confirmar.";
+      setError(message);
       setGoing(!next);
     }
   };
@@ -190,9 +181,7 @@ function VenuePage() {
             pra confirmar presença
           </div>
         )}
-        {error && (
-          <p className="mt-2 text-sm text-red-600 text-center">{error}</p>
-        )}
+        {error && <p className="mt-2 text-sm text-red-600 text-center">{error}</p>}
       </div>
       <BottomNav />
     </main>

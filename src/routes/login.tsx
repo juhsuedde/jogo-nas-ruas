@@ -39,12 +39,12 @@ function LoginPage() {
   return (
     <main className="absolute inset-0 bg-background overflow-y-auto">
       <div className="max-w-md mx-auto px-5 pt-10 pb-12">
-        <Link to="/mapa" className="text-sm font-bold text-brasil-navy">← voltar</Link>
+        <Link to="/mapa" className="text-sm font-bold text-brasil-navy">
+          ← voltar
+        </Link>
         <div className="mt-6 text-center">
           <div className="text-5xl mb-3">⚽</div>
-          <h1 className="font-display text-3xl text-brasil-navy leading-none">
-            JOGO NAS RUAS
-          </h1>
+          <h1 className="font-display text-3xl text-brasil-navy leading-none">JOGO NAS RUAS</h1>
           <p className="text-sm text-muted-foreground mt-2">
             entre pra confirmar presença e cadastrar locais
           </p>
@@ -73,12 +73,8 @@ function LoginPage() {
             />
           </label>
 
-          {error && (
-            <p className="text-sm text-red-600 font-semibold">{error}</p>
-          )}
-          {info && (
-            <p className="text-sm text-brasil-green font-semibold">{info}</p>
-          )}
+          {error && <p className="text-sm text-red-600 font-semibold">{error}</p>}
+          {info && <p className="text-sm text-brasil-green font-semibold">{info}</p>}
 
           <button
             disabled={busy}
@@ -97,9 +93,7 @@ function LoginPage() {
             }}
             className="w-full text-sm text-brasil-navy underline"
           >
-            {mode === "signin"
-              ? "Ainda não tem conta? Criar agora"
-              : "Já tenho conta — entrar"}
+            {mode === "signin" ? "Ainda não tem conta? Criar agora" : "Já tenho conta — entrar"}
           </button>
         </form>
       </div>

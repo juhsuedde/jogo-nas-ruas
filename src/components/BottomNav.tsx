@@ -33,10 +33,7 @@ export function BottomNav() {
             >
               {primary ? (
                 <div className="-mt-6 size-14 rounded-full bg-brasil-yellow handmade-border flex items-center justify-center">
-                  <Icon
-                    className="size-6 text-brasil-navy"
-                    strokeWidth={3}
-                  />
+                  <Icon className="size-6 text-brasil-navy" strokeWidth={3} />
                 </div>
               ) : (
                 <div

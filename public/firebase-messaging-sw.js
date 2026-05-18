@@ -1,5 +1,5 @@
-importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js");
 
 firebase.initializeApp({
   apiKey: "AIzaSyAj1yeQCze7e7aXCSLI3e4EcRCHKzeuESk",
@@ -13,18 +13,18 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || 'Jogo nas Ruas';
+  const title = payload.notification?.title || "Jogo nas Ruas";
   const options = {
-    body: payload.notification?.body || '',
-    icon: '/icon-192.svg',
-    badge: '/icon-192.svg',
+    body: payload.notification?.body || "",
+    icon: "/icon-192.svg",
+    badge: "/icon-192.svg",
     data: payload.data || {},
   };
   self.registration.showNotification(title, options);
 });
 
-self.addEventListener('notificationclick', (event) => {
+self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/mapa';
+  const url = (event.notification.data && event.notification.data.url) || "/mapa";
   event.waitUntil(clients.openWindow(url));
 });

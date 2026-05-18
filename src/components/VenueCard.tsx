@@ -20,9 +20,7 @@ export function VenueCard({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-display text-lg text-brasil-navy truncate">
-              {venue.name}
-            </h3>
+            <h3 className="font-display text-lg text-brasil-navy truncate">{venue.name}</h3>
             {venue.unverified && (
               <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0">
                 Novo
@@ -35,18 +33,14 @@ export function VenueCard({
         </div>
         <div className="flex flex-col items-center shrink-0 rounded-xl bg-brasil-green text-white px-2.5 py-1.5">
           <Users className="size-3.5" />
-          <span className="font-display text-sm leading-none mt-1">
-            {venue.rsvps}
-          </span>
+          <span className="font-display text-sm leading-none mt-1">{venue.rsvps}</span>
         </div>
       </div>
 
       <div className="mt-3 flex items-center gap-2 flex-wrap">
         <span
           className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-            venue.isBrazilMatch
-              ? "bg-secondary text-brasil-navy"
-              : "bg-muted text-foreground"
+            venue.isBrazilMatch ? "bg-secondary text-brasil-navy" : "bg-muted text-foreground"
           }`}
         >
           {venue.matchTime} · {venue.match}

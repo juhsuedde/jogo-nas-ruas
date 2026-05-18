@@ -44,8 +44,7 @@ function Splash() {
       <div
         className="absolute inset-0 opacity-25"
         style={{
-          backgroundImage:
-            "radial-gradient(oklch(0.88 0.18 95) 1.5px, transparent 1.5px)",
+          backgroundImage: "radial-gradient(oklch(0.88 0.18 95) 1.5px, transparent 1.5px)",
           backgroundSize: "22px 22px",
         }}
       />

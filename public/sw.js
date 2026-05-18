@@ -19,10 +19,10 @@ self.addEventListener("activate", (event) => {
       await Promise.all(
         keys
           .filter((k) => ![SHELL_CACHE, TILES_CACHE, ASSETS_CACHE, DATA_CACHE].includes(k))
-          .map((k) => caches.delete(k))
+          .map((k) => caches.delete(k)),
       );
       await self.clients.claim();
-    })()
+    })(),
   );
 });
 
@@ -57,7 +57,7 @@ self.addEventListener("fetch", (event) => {
         } catch {
           return hit || Response.error();
         }
-      })()
+      })(),
     );
     return;
   }
@@ -75,7 +75,7 @@ self.addEventListener("fetch", (event) => {
           })
           .catch(() => hit);
         return hit || network;
-      })()
+      })(),
     );
     return;
   }
@@ -94,7 +94,7 @@ self.addEventListener("fetch", (event) => {
           const hit = await cache.match(req);
           return hit || (await cache.match("/mapa")) || Response.error();
         }
-      })()
+      })(),
     );
     return;
   }
@@ -115,7 +115,7 @@ self.addEventListener("fetch", (event) => {
         } catch {
           return hit || Response.error();
         }
-      })()
+      })(),
     );
   }
 });

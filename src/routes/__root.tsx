@@ -15,7 +15,6 @@ import { FcmForegroundToast } from "@/components/FcmForegroundToast";
 
 import appCss from "../styles.css?url";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -79,8 +78,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       {
         name: "viewport",
-        content:
-          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+        content: "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
       },
       { title: "Jogo nas Ruas — Onde assistir a Copa 2026" },
       {
@@ -101,7 +99,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026 perto de você.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png" },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Jogo nas Ruas — Onde assistir a Copa 2026" },
       {
@@ -109,13 +111,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026 perto de você.",
       },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png" },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6b14e9fc-e8b4-4c7f-9024-46fd85bd2829/id-preview-f2a1151a--4e3b65f0-0c44-467d-be23-a066d39c4552.lovable.app-1779132336314.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;600;700;800&display=swap",
+      },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/icon-512.svg" },
       { rel: "icon", href: "/icon-192.svg", type: "image/svg+xml" },
@@ -185,4 +194,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

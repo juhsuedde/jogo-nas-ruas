@@ -22,8 +22,7 @@ export function BottomSheet({ children }: { children: ReactNode }) {
     const vh = typeof window !== "undefined" ? window.innerHeight : 800;
     const currentPct = snaps[snap] - (dragOffset / vh) * 100;
     const nearest = snaps.reduce(
-      (p, c, i) =>
-        Math.abs(c - currentPct) < Math.abs(snaps[p] - currentPct) ? i : p,
+      (p, c, i) => (Math.abs(c - currentPct) < Math.abs(snaps[p] - currentPct) ? i : p),
       0,
     );
     setSnap(nearest);
@@ -57,9 +56,7 @@ export function BottomSheet({ children }: { children: ReactNode }) {
       >
         <div className="h-1.5 w-12 rounded-full bg-brasil-navy/30" />
       </div>
-      <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6">
-        {children}
-      </div>
+      <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6">{children}</div>
     </div>
   );
 }

@@ -69,7 +69,7 @@ export const VENUES: Venue[] = [
     name: "Bar Brahma",
     type: "bar",
     address: "Av. São João, 677 — República",
-    lat: -23.5440,
+    lat: -23.544,
     lng: -46.6396,
     match: "Brasil x Argentina",
     matchTime: "16:00",
@@ -100,8 +100,8 @@ export const VENUES: Venue[] = [
     name: "Quitanda da Esquina",
     type: "restaurante",
     address: "R. Aspicuelta, 200 — Vila Madalena",
-    lat: -23.5530,
-    lng: -46.6900,
+    lat: -23.553,
+    lng: -46.69,
     match: "Brasil x Argentina",
     matchTime: "16:00",
     isBrazilMatch: true,
@@ -117,7 +117,12 @@ export const FILTERS = [
   { id: "today", label: "Hoje" },
   { id: "brazil", label: "Jogos do Brasil" },
   { id: "screen", label: "Telão" },
-  { id: "city", label: "Minha cidade" },
 ] as const;
+
+export const RADIUS_OPTIONS = [1, 3, 5, 10, 20] as const;
+
+export type RadiusOption = (typeof RADIUS_OPTIONS)[number];
+
+export const DEFAULT_RADIUS: RadiusOption = 5;
 
 export type FilterId = (typeof FILTERS)[number]["id"];

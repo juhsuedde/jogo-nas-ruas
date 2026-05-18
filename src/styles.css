@@ -95,12 +95,14 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     /* Subtle paper texture via repeating noise dots */
-    background-image:
-      radial-gradient(oklch(0.32 0.13 265 / 0.04) 1px, transparent 1px);
+    background-image: radial-gradient(oklch(0.32 0.13 265 / 0.04) 1px, transparent 1px);
     background-size: 14px 14px;
   }
 
-  h1, h2, h3, .font-display {
+  h1,
+  h2,
+  h3,
+  .font-display {
     font-family: var(--font-display);
     letter-spacing: 0.01em;
   }
@@ -136,8 +138,7 @@
   align-items: center;
   justify-content: center;
   background: oklch(0.18 0.05 265);
-  background-image:
-    radial-gradient(oklch(0.32 0.13 265 / 0.35) 1px, transparent 1px);
+  background-image: radial-gradient(oklch(0.32 0.13 265 / 0.35) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 .phone-screen {
@@ -148,10 +149,14 @@
   overflow: hidden;
   isolation: isolate;
 }
-.phone-notch { display: none; }
+.phone-notch {
+  display: none;
+}
 
 @media (min-width: 481px) {
-  .phone-frame { padding: 24px; }
+  .phone-frame {
+    padding: 24px;
+  }
   .phone-screen {
     width: 390px;
     height: min(844px, calc(100vh - 48px));
@@ -198,5 +203,9 @@
   font-size: 9px !important;
   opacity: 0.6;
 }
-.scrollbar-none::-webkit-scrollbar { display: none; }
-.scrollbar-none { scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+}

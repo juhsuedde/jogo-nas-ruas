@@ -13,15 +13,13 @@ import { useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { useAuth } from "@/hooks/use-auth";
 
-
 export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
       { title: "Meu perfil — Jogo nas Ruas" },
       {
         name: "description",
-        content:
-          "Seu perfil no Jogo nas Ruas: jogos confirmados, histórico e locais cadastrados.",
+        content: "Seu perfil no Jogo nas Ruas: jogos confirmados, histórico e locais cadastrados.",
       },
     ],
   }),
@@ -121,7 +119,6 @@ function PerfilPage() {
     navigate({ to: "/login" });
   };
   return (
-
     <main className="absolute inset-0 overflow-y-auto pb-28">
       <BottomNav />
       {/* Header */}
@@ -134,9 +131,7 @@ function PerfilPage() {
           >
             <ArrowLeft className="size-4 text-brasil-navy" />
           </Link>
-          <h1 className="font-display text-base text-brasil-navy tracking-wider">
-            MEU PERFIL
-          </h1>
+          <h1 className="font-display text-base text-brasil-navy tracking-wider">MEU PERFIL</h1>
           <div className="size-10" />
         </div>
       </div>
@@ -146,27 +141,19 @@ function PerfilPage() {
         <section className="flex items-center gap-4">
           <div className="relative">
             <div className="size-20 rounded-full bg-brasil-green handmade-border flex items-center justify-center">
-              <span className="font-display text-2xl text-white">
-                {initials}
-              </span>
+              <span className="font-display text-2xl text-white">{initials}</span>
             </div>
             <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-brasil-yellow border-2 border-brasil-navy flex items-center justify-center text-sm">
-
               ⚽
             </div>
           </div>
           <div className="min-w-0">
-            <p className="font-display text-lg text-brasil-navy truncate">
-              {displayName}
-            </p>
-            <p className="text-sm text-muted-foreground truncate">
-              {user?.email ?? USER.handle}
-            </p>
+            <p className="font-display text-lg text-brasil-navy truncate">{displayName}</p>
+            <p className="text-sm text-muted-foreground truncate">{user?.email ?? USER.handle}</p>
             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <MapPin className="size-3" /> {USER.city}
             </p>
           </div>
-
         </section>
 
         {/* Stats */}
@@ -180,30 +167,21 @@ function PerfilPage() {
 
         {/* Upcoming */}
         <section>
-          <SectionTitle icon={<Calendar className="size-4" />}>
-            PRÓXIMOS JOGOS
-          </SectionTitle>
+          <SectionTitle icon={<Calendar className="size-4" />}>PRÓXIMOS JOGOS</SectionTitle>
           <div className="-mx-4 px-4 mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
             {UPCOMING.map((m) => (
-              <article
-                key={m.id}
-                className="shrink-0 w-64 rounded-2xl bg-card handmade-border p-4"
-              >
+              <article key={m.id} className="shrink-0 w-64 rounded-2xl bg-card handmade-border p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-2xl">{m.flag}</span>
                   <div className="min-w-0">
-                    <p className="font-bold text-brasil-navy text-sm truncate">
-                      {m.teams}
-                    </p>
+                    <p className="font-bold text-brasil-navy text-sm truncate">{m.teams}</p>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock className="size-3" /> {m.time}
                     </p>
                   </div>
                 </div>
                 <div className="rounded-xl bg-background border-2 border-brasil-navy/15 p-2.5 mt-2">
-                  <p className="text-xs font-bold text-brasil-navy truncate">
-                    📍 {m.venue}
-                  </p>
+                  <p className="text-xs font-bold text-brasil-navy truncate">📍 {m.venue}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                     <Users className="size-3" /> Vai com {m.guests}{" "}
                     {m.guests === 1 ? "pessoa" : "pessoas"}
@@ -216,9 +194,7 @@ function PerfilPage() {
 
         {/* History */}
         <section>
-          <SectionTitle icon={<Clock className="size-4" />}>
-            HISTÓRICO
-          </SectionTitle>
+          <SectionTitle icon={<Clock className="size-4" />}>HISTÓRICO</SectionTitle>
           <div className="mt-3 space-y-2">
             {HISTORY.map((m) => (
               <HistoryRow key={m.id} match={m} />
@@ -228,9 +204,7 @@ function PerfilPage() {
 
         {/* My venues */}
         <section>
-          <SectionTitle icon={<MapPin className="size-4" />}>
-            LOCAIS QUE ADICIONEI
-          </SectionTitle>
+          <SectionTitle icon={<MapPin className="size-4" />}>LOCAIS QUE ADICIONEI</SectionTitle>
           <div className="mt-3 space-y-2">
             {MY_VENUES.map((v) => (
               <article
@@ -242,9 +216,7 @@ function PerfilPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="font-bold text-brasil-navy text-sm truncate">
-                      {v.name}
-                    </p>
+                    <p className="font-bold text-brasil-navy text-sm truncate">{v.name}</p>
                     {v.verified ? (
                       <span
                         className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brasil-green"
@@ -258,9 +230,7 @@ function PerfilPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {v.address}
-                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{v.address}</p>
                   <p className="text-[11px] text-brasil-navy/70 mt-0.5">
                     {v.rsvps} pessoas confirmadas
                   </p>
@@ -288,7 +258,6 @@ function PerfilPage() {
           </Link>
         )}
 
-
         <p className="text-center text-[11px] text-muted-foreground pt-2">
           jogo nas ruas · copa 2026
         </p>
@@ -301,20 +270,12 @@ function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <p className="font-display text-2xl text-brasil-yellow">{value}</p>
-      <p className="text-[11px] font-bold uppercase tracking-wider text-white/80">
-        {label}
-      </p>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-white/80">{label}</p>
     </div>
   );
 }
 
-function SectionTitle({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
+function SectionTitle({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 text-brasil-navy">
       {icon}
@@ -333,9 +294,7 @@ function HistoryRow({
     <article className="rounded-2xl bg-card handmade-border p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-bold text-brasil-navy text-sm truncate">
-            {match.teams}
-          </p>
+          <p className="font-bold text-brasil-navy text-sm truncate">{match.teams}</p>
           <p className="text-xs text-muted-foreground truncate">
             {match.date} · {match.venue}
           </p>
@@ -345,21 +304,13 @@ function HistoryRow({
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between">
-        <span className="text-[11px] text-muted-foreground">
-          Avaliar o local:
-        </span>
+        <span className="text-[11px] text-muted-foreground">Avaliar o local:</span>
         <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              onClick={() => setRating(n)}
-              aria-label={`${n} estrelas`}
-            >
+            <button key={n} onClick={() => setRating(n)} aria-label={`${n} estrelas`}>
               <Star
                 className={`size-4 transition-colors ${
-                  n <= rating
-                    ? "fill-brasil-yellow text-brasil-yellow"
-                    : "text-brasil-navy/30"
+                  n <= rating ? "fill-brasil-yellow text-brasil-yellow" : "text-brasil-navy/30"
                 }`}
               />
             </button>

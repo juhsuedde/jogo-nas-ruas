@@ -17,7 +17,9 @@ export function FcmForegroundToast() {
     return () => {
       try {
         (unsub as () => void)?.();
-      } catch {}
+      } catch {
+        // unsubscribe failed, ignore
+      }
     };
   }, []);
 
@@ -27,12 +29,8 @@ export function FcmForegroundToast() {
     <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[100] w-[min(92vw,420px)]">
       <div className="rounded-2xl bg-brasil-navy text-white border-2 border-brasil-yellow shadow-2xl p-3 flex items-start gap-3">
         <div className="flex-1 min-w-0">
-          <div className="font-display text-lg leading-tight text-brasil-yellow">
-            {notif.title}
-          </div>
-          {notif.body && (
-            <div className="text-sm text-white/90 mt-0.5">{notif.body}</div>
-          )}
+          <div className="font-display text-lg leading-tight text-brasil-yellow">{notif.title}</div>
+          {notif.body && <div className="text-sm text-white/90 mt-0.5">{notif.body}</div>}
         </div>
         <button
           aria-label="Fechar"
