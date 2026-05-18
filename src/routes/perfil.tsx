@@ -114,15 +114,30 @@ function PerfilPage() {
   const displayName = user?.email?.split("@")[0] ?? USER.name;
   const initials = (user?.email?.slice(0, 2) ?? USER.initials).toUpperCase();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [cityName, setCityName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setUserLocation({ lat, lng });
+
+        // Reverse geocoding to get city name
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pt-BR`,
+            { headers: { "User-Agent": "JogoNasRuas/1.0" } }
+          );
+          const data = await response.json();
+          const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.state;
+          if (city) {
+            setCityName(city);
+          }
+        } catch (e) {
+          // Ignore reverse geocoding errors
+        }
       },
       () => {
         // Location denied/unavailable - don't show anything
@@ -166,9 +181,9 @@ function PerfilPage() {
           <div className="min-w-0">
             <p className="font-display text-lg text-brasil-navy truncate">{displayName}</p>
             <p className="text-sm text-muted-foreground truncate">{user?.email ?? USER.handle}</p>
-            {userLocation && (
+            {(cityName || userLocation) && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                <MapPin className="size-3" /> {userLocation.lat.toFixed(2)}, {userLocation.lng.toFixed(2)}
+                <MapPin className="size-3" /> {cityName ?? "Localização obtida"}
               </p>
             )}
           </div>
