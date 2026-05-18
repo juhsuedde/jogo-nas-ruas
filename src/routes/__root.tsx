@@ -149,7 +149,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@type": "Organization",
           name: "Jogo nas Ruas",
           url: "https://jogonasruas.lovable.app",
-          logo: "https://jogonasruas.lovable.app/icon-512.svg",
+          logo: "https://jogonasruas.lovable.app/icon-512.png",
         }),
       },
     ],
