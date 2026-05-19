@@ -9,17 +9,22 @@ export function FcmForegroundToast() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const unsub = onForegroundMessage((payload) => {
+    let unsub: (() => void) | undefined;
+    let cancelled = false;
+    onForegroundMessage((payload) => {
       const n = payload.notification;
       if (!n) return;
       setNotif({ title: n.title ?? "Jogo nas Ruas", body: n.body ?? "" });
-    });
-    return () => {
-      try {
-        (unsub as () => void)?.();
-      } catch {
-        // unsubscribe failed, ignore
+    }).then((u) => {
+      if (cancelled) {
+        try { u?.(); } catch { /* ignore */ }
+      } else {
+        unsub = u;
       }
+    }).catch(() => { /* ignore */ });
+    return () => {
+      cancelled = true;
+      try { unsub?.(); } catch { /* ignore */ }
     };
   }, []);
 
