@@ -1,7 +1,6 @@
-import { memo } from "react";
+import { memo, useRef, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
-import { useEffect } from "react";
 import type { Venue } from "@/data/venues";
 
 const greenIcon = L.divIcon({
@@ -57,6 +56,38 @@ function FlyTo({ lat, lng }: { lat: number; lng: number }) {
   return null;
 }
 
+function MapController({
+  center,
+  zoom,
+  activeId,
+  onFlyTo,
+}: {
+  center?: [number, number];
+  zoom?: number;
+  activeId: string | null;
+  onFlyTo?: (fn: (lat: number, lng: number, zoom?: number) => void) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    onFlyTo?.((lat, lng, z = 15) => {
+      map.flyTo([lat, lng], z, { duration: 0.8 });
+    });
+  }, [map, onFlyTo]);
+
+  return null;
+}
+
+interface MapViewProps {
+  venues: Venue[];
+  activeId: string | null;
+  onSelect: (id: string) => void;
+  center?: [number, number];
+  zoom?: number;
+  selectedPlace?: { lat: number; lng: number; name: string } | null;
+  onFlyTo?: (fn: (lat: number, lng: number, zoom?: number) => void) => void;
+}
+
 function MapViewComponent({
   venues,
   activeId,
@@ -64,15 +95,10 @@ function MapViewComponent({
   center,
   zoom,
   selectedPlace,
-}: {
-  venues: Venue[];
-  activeId: string | null;
-  onSelect: (id: string) => void;
-  center?: [number, number];
-  zoom?: number;
-  selectedPlace?: { lat: number; lng: number; name: string } | null;
-}) {
+  onFlyTo,
+}: MapViewProps) {
   const active = venues.find((v) => v.id === activeId);
+
   return (
     <MapContainer
       center={center ?? [-14.235, -51.925]}
@@ -85,6 +111,7 @@ function MapViewComponent({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attribution">CARTO</a>'
         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
+      <MapController center={center} zoom={zoom} activeId={activeId} onFlyTo={onFlyTo} />
       {venues.map((v) => (
         <Marker
           key={v.id}
@@ -105,3 +132,5 @@ function MapViewComponent({
 }
 
 export const MapView = memo(MapViewComponent);
+
+export const mapViewFlyTo = (ref: React.MutableRefObject<((lat: number, lng: number, zoom?: number) => void) | null>) => ref.current;

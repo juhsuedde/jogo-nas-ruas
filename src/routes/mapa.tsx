@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, lazy, Suspense, useEffect, useRef, useCallback } from "react";
-import { Plus, Search, MapPin, Loader2 } from "lucide-react";
+import { Plus, Search, MapPin, Loader2, Crosshair } from "lucide-react";
 import {
   FILTERS,
   type FilterId,
@@ -86,7 +86,44 @@ function MapPage() {
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
 const [showAddModal, setShowAddModal] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flyToFnRef = useRef<((lat: number, lng: number, zoom?: number) => void) | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const { data: allVenues = [], isLoading: loading } = useVenues();
+
+  const handleCenterOnUser = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationError("Geolocalização não suportada");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+        setLocationError(null);
+        flyToFnRef.current?.(latitude, longitude, 15);
+        setIsLocating(false);
+      },
+      (error) => {
+        setIsLocating(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setLocationError("Permita o acesso à localização");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setLocationError("GPS indisponível");
+            break;
+          case error.TIMEOUT:
+            setLocationError("Tempo esgotado. Tente novamente.");
+            break;
+          default:
+            setLocationError("Erro ao obter localização");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }, []);
 
   const preloadAddVenueModal = useCallback(() => {
     import("@/components/AddVenueModal");
@@ -226,7 +263,32 @@ const [showAddModal, setShowAddModal] = useState(false);
             center={mapCenter}
             zoom={mapZoom}
             selectedPlace={selectedPlace}
+            onFlyTo={(fn) => { flyToFnRef.current = fn; }}
           />
+
+      {/* Location button */}
+      <button
+        onClick={handleCenterOnUser}
+        disabled={isLocating}
+        className="absolute bottom-32 right-4 z-[1000] size-12 bg-white rounded-full shadow-lg border border-brasil-navy/10 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+        aria-label="Centralizar na minha localização"
+      >
+        {isLocating ? (
+          <Loader2 className="size-5 text-brasil-green animate-spin" />
+        ) : (
+          <Crosshair className="size-5 text-brasil-navy" />
+        )}
+      </button>
+
+      {/* Location error toast */}
+      {locationError && (
+        <div className="absolute top-20 left-4 right-4 z-[1000] bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm shadow-lg flex items-center justify-between">
+          <span>{locationError}</span>
+          <button onClick={() => setLocationError(null)} className="font-bold">
+            ×
+          </button>
+        </div>
+      )}
         </Suspense>
       </ClientOnly>
 
