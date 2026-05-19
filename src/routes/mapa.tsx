@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, lazy, Suspense, useEffect, useRef, useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, MapPin, Loader2, Crosshair } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import {
   FILTERS,
   type FilterId,
@@ -89,6 +91,7 @@ const [showAddModal, setShowAddModal] = useState(false);
   const flyToFnRef = useRef<((lat: number, lng: number, zoom?: number) => void) | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const { data: allVenues = [], isLoading: loading } = useVenues();
+  const queryClient = useQueryClient();
 
   const handleCenterOnUser = useCallback(() => {
     if (!navigator.geolocation) {
@@ -129,9 +132,39 @@ const [showAddModal, setShowAddModal] = useState(false);
     import("@/components/AddVenueModal");
   }, []);
 
-  const handleAddVenue = (venue: { name: string; address: any; perks: string[]; matches: string[]; googlePlaceId: string }) => {
-    console.log("Add venue:", venue);
-    // TODO: Call mutation to add venue to database
+  const addVenueMutation = useMutation({
+    mutationFn: async (venue: { name: string; address: any; perks: string[]; matches: string[]; googlePlaceId: string }) => {
+      const { error } = await supabase.from("venues").insert({
+        name: venue.name,
+        type: "bar",
+        address: venue.address.title + ", " + venue.address.subtitle,
+        lat: venue.address.lat || 0,
+        lng: venue.address.lng || 0,
+        city: "",
+        match: venue.matches[0] || "",
+        match_time: "",
+        is_brazil_match: venue.matches.some((m) => m.includes("bra")),
+        big_screen: venue.perks.includes("big-screen"),
+        promo: venue.perks.includes("promo") ? "Promoção disponível" : null,
+        unverified: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["venues"] });
+    },
+  });
+
+  const handleAddVenue = async (venue: { name: string; address: any; perks: string[]; matches: string[]; googlePlaceId: string }) => {
+    try {
+      await addVenueMutation.mutateAsync(venue);
+      setShowAddModal(false);
+      if (venue.address.lat && venue.address.lng) {
+        flyToFnRef.current?.(venue.address.lat, venue.address.lng, 16);
+      }
+    } catch (err) {
+      console.error("Failed to create venue:", err);
+    }
   };
 
   const clearSearch = useCallback(() => {
@@ -162,7 +195,7 @@ const [showAddModal, setShowAddModal] = useState(false);
     searchTimeoutRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const results = await searchPlaces(query);
+        const results = await searchPlaces(query, userLocation);
         setSearchResults(results);
       } catch (err) {
         console.error("Search failed", err);
@@ -173,7 +206,7 @@ const [showAddModal, setShowAddModal] = useState(false);
     return () => {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     };
-  }, [query, selectedPlace]);
+  }, [query, selectedPlace, userLocation]);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -270,7 +303,7 @@ const [showAddModal, setShowAddModal] = useState(false);
       <button
         onClick={handleCenterOnUser}
         disabled={isLocating}
-        className="absolute bottom-32 right-4 z-[1000] size-12 bg-white rounded-full shadow-lg border border-brasil-navy/10 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+        className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[1000] size-14 bg-white rounded-full shadow-xl border-2 border-brasil-green flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
         aria-label="Centralizar na minha localização"
       >
         {isLocating ? (

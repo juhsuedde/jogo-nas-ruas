@@ -13,12 +13,26 @@ export interface GooglePlace {
   types: string[];
 }
 
-export async function searchPlaces(query: string): Promise<GooglePlace[]> {
+export async function searchPlaces(
+  query: string,
+  userLocation?: [number, number] | null
+): Promise<GooglePlace[]> {
   if (!query || query.length < 2) return [];
 
   try {
+    const body: Record<string, unknown> = { action: "search", query };
+
+    if (userLocation) {
+      body.locationBias = {
+        circle: {
+          center: { latitude: userLocation[0], longitude: userLocation[1] },
+          radius: 50000,
+        },
+      };
+    }
+
     const { data, error } = await supabase.functions.invoke("google-places", {
-      body: { action: "search", query },
+      body,
     });
 
     if (error) {

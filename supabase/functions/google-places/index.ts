@@ -17,7 +17,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { action, query, placeId, lat, lng, radius = 5000 } = body;
+    const { action, query, placeId, lat, lng, radius = 5000, locationBias } = body;
 
     // SEARCH ACTION
     if (action === "search") {
@@ -36,7 +36,10 @@ Deno.serve(async (req: Request) => {
         regionCode: "BR",
       };
 
-      if (lat && lng) {
+      // Use locationBias from frontend if provided, otherwise fall back to lat/lng
+      if (locationBias) {
+        searchBody.locationBias = locationBias;
+      } else if (lat && lng) {
         searchBody.locationBias = {
           circle: {
             center: { latitude: lat, longitude: lng },
