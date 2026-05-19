@@ -75,8 +75,8 @@ function MapViewComponent({
   const active = venues.find((v) => v.id === activeId);
   return (
     <MapContainer
-      center={center ?? [-23.5558, -46.6622]}
-      zoom={zoom ?? 13}
+      center={center ?? [-14.235, -51.925]}
+      zoom={zoom ?? 4}
       zoomControl={false}
       className="absolute inset-0 h-full w-full"
       scrollWheelZoom={false}

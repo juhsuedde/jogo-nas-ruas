@@ -124,16 +124,20 @@ function PerfilPage() {
         const lng = position.coords.longitude;
         setUserLocation({ lat, lng });
 
-        // Reverse geocoding to get city name
+        // Reverse geocoding to get city name (via Edge Function)
         try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pt-BR`,
-            { headers: { "User-Agent": "JogoNasRuas/1.0" } }
+            `${supabaseUrl}/functions/v1/reverse-geocode`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ lat, lng }),
+            }
           );
           const data = await response.json();
-          const city = data.address?.city || data.address?.town || data.address?.municipality || data.address?.state;
-          if (city) {
-            setCityName(city);
+          if (data.city) {
+            setCityName(data.city);
           }
         } catch (e) {
           // Ignore reverse geocoding errors
