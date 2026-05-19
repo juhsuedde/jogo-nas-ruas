@@ -95,21 +95,25 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      const fields = [
+      const fieldMask = [
         "id",
         "displayName",
         "formattedAddress",
-        "geometry",
-        "formattedPhoneNumber",
-        "internationalPhoneNumber",
+        "location",
         "rating",
         "photos",
-        "website",
+        "websiteUri",
         "types",
       ].join(",");
 
       const response = await fetch(
-        `https://places.googleapis.com/v1/places/${placeId}?fields=${fields}&key=${GOOGLE_API_KEY}`
+        `https://places.googleapis.com/v1/places/${placeId}`,
+        {
+          headers: {
+            "X-Goog-Api-Key": GOOGLE_API_KEY || "",
+            "X-Goog-FieldMask": fieldMask,
+          },
+        }
       );
 
       if (!response.ok) {
@@ -132,10 +136,9 @@ Deno.serve(async (req: Request) => {
         place_id: result.id,
         name: result.displayName?.text || "",
         formatted_address: result.formattedAddress || "",
-        lat: result.geometry?.location?.lat || 0,
-        lng: result.geometry?.location?.lng || 0,
-        phone: result.formattedPhoneNumber || "",
-        website: result.website || "",
+        lat: result.location?.latitude || 0,
+        lng: result.location?.longitude || 0,
+        website: result.websiteUri || "",
         rating: result.rating,
         photoUrl,
         types: result.types || [],
