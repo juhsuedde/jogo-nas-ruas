@@ -2,7 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
-const AddVenueModalLazy = lazy(() => import("@/components/AddVenueModal"));
+const AddVenueModalLazy = lazy(() =>
+  import("@/components/AddVenueModal").then((module) => ({
+    default: module.AddVenueModal,
+  }))
+);
 
 export const Route = createFileRoute("/add")({
   head: () => {

@@ -1,7 +1,11 @@
 import { Suspense, lazy } from "react";
 import { Loader2 } from "lucide-react";
 
-const AddVenueModalLazy = lazy(() => import("./AddVenueModal"));
+const AddVenueModalLazy = lazy(() =>
+  import("@/components/AddVenueModal").then((module) => ({
+    default: module.AddVenueModal,
+  }))
+);
 
 interface LazyAddVenueModalProps {
   open: boolean;
