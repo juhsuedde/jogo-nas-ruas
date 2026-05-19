@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -31,12 +31,30 @@ export const Route = createFileRoute("/")({
   component: Splash,
 });
 
+const HAS_SEEN_SPLASH_KEY = "jnr_has_seen_splash";
+
 function Splash() {
   const navigate = useNavigate();
+  const [showSplash, setShowSplash] = useState(false);
+
   useEffect(() => {
-    const t = setTimeout(() => navigate({ to: "/mapa" }), 2000);
-    return () => clearTimeout(t);
+    const hasSeen = localStorage.getItem(HAS_SEEN_SPLASH_KEY);
+
+    if (hasSeen) {
+      navigate({ to: "/mapa", replace: true });
+    } else {
+      setShowSplash(true);
+      localStorage.setItem(HAS_SEEN_SPLASH_KEY, "true");
+
+      const t = setTimeout(() => {
+        navigate({ to: "/mapa", replace: true });
+      }, 2500);
+
+      return () => clearTimeout(t);
+    }
   }, [navigate]);
+
+  if (!showSplash) return null;
 
   return (
     <main className="absolute inset-0 bg-brasil-green flex flex-col items-center justify-center overflow-hidden">
@@ -52,7 +70,7 @@ function Splash() {
       <div className="absolute -top-20 -right-20 size-72 rounded-full bg-brasil-yellow/30 blur-2xl" />
       <div className="absolute -bottom-24 -left-16 size-72 rounded-full bg-brasil-navy/40 blur-2xl" />
 
-      <div className="relative flex flex-col items-center gap-4 px-8 text-center">
+      <div className="relative flex flex-col items-center gap-4 px-8 text-center animate-fade-in">
         <div className="size-24 rounded-3xl bg-brasil-yellow handmade-border flex items-center justify-center text-5xl animate-bounce">
           ⚽
         </div>
