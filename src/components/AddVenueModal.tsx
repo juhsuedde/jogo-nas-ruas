@@ -167,11 +167,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
         }
       }
     } catch (e) {
-      toast({
-        title: "Erro ao carregar detalhes",
-        description: "Usando informações básicas do endereço.",
-        variant: "destructive",
-      });
+      toast.error("Erro ao carregar detalhes. Usando informações básicas do endereço.");
     } finally {
       setIsLoadingDetails(false);
     }
@@ -198,11 +194,11 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   function handleNext() {
     if (step === 1) {
       if (!address) {
-        toast({ title: "Selecione um local", variant: "destructive" });
+        toast.error("Selecione um local");
         return;
       }
       if (!name.trim()) {
-        toast({ title: "Nome do local é obrigatório", variant: "destructive" });
+        toast.error("Nome do local é obrigatório");
         return;
       }
       setStep(2);
@@ -225,7 +221,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
       googlePlaceId: address.placeId,
     });
     onOpenChange(false);
-    toast({ title: "Local cadastrado com sucesso!" });
+    toast.success("Local cadastrado com sucesso!");
   }
 
   // ─── Render ────────────────────────────────────────────────────────────────

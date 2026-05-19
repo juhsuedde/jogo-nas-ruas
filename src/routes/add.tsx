@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 const AddVenueModalLazy = lazy(() =>
@@ -30,6 +30,8 @@ export const Route = createFileRoute("/add")({
 
 function AddPage() {
   const navigate = useNavigate();
+  const [open, setOpen] = useState(true);
+
   return (
     <Suspense
       fallback={
@@ -38,7 +40,13 @@ function AddPage() {
         </div>
       }
     >
-      <AddVenueModalLazy onClose={() => navigate({ to: "/" })} />
+      <AddVenueModalLazy
+        open={open}
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) navigate({ to: "/" });
+        }}
+      />
     </Suspense>
   );
 }
