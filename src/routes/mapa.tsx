@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, lazy, Suspense, useEffect, useRef } from "react";
+import { useMemo, useState, lazy, Suspense, useEffect, useRef, useCallback } from "react";
 import { Plus, Search, MapPin, Loader2 } from "lucide-react";
 import {
   FILTERS,
