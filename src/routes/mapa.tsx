@@ -97,6 +97,47 @@ const [showAddModal, setShowAddModal] = useState(false);
     // TODO: Call mutation to add venue to database
   };
 
+  const clearSearch = useCallback(() => {
+    setSelectedPlace(null);
+    setQuery("");
+    setSearchResults([]);
+  }, []);
+
+  const handleSelectPlace = useCallback(async (place: GooglePlace) => {
+    setSelectedPlace(place);
+    setQuery(place.name);
+    setSearchResults([]);
+    try {
+      const details = await getPlaceDetails(place.place_id);
+      if (details) setSelectedPlace(details);
+    } catch (err) {
+      console.error("Failed to load place details", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedPlace) return;
+    if (!query || query.trim().length < 3) {
+      setSearchResults([]);
+      return;
+    }
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const results = await searchPlaces(query);
+        setSearchResults(results);
+      } catch (err) {
+        console.error("Search failed", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 350);
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
+  }, [query, selectedPlace]);
+
   useEffect(() => {
     if (!navigator.geolocation) {
       setLocationError("Geolocalização não suportada");

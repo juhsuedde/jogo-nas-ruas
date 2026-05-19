@@ -46,6 +46,11 @@ function AddPage() {
           setOpen(isOpen);
           if (!isOpen) navigate({ to: "/" });
         }}
+        onSubmit={(venue) => {
+          console.log("Add venue:", venue);
+          setOpen(false);
+          navigate({ to: "/" });
+        }}
       />
     </Suspense>
   );
