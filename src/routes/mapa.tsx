@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, lazy, Suspense, useEffect, useRef, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCreateVenue } from "@/features/venues/hooks/useCreateVenue";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/shared/lib/supabase";
 import {
@@ -129,47 +130,15 @@ const [showAddModal, setShowAddModal] = useState(false);
     );
   }, []);
 
-  const preloadAddVenueModal = useCallback(() => {
+const preloadAddVenueModal = useCallback(() => {
     import("@/features/venues/components/AddVenueModal");
   }, []);
 
-  const addVenueMutation = useMutation({
-    mutationFn: async (venue: { name: string; address: any; perks: string[]; matches: string[]; googlePlaceId: string }) => {
-      console.log("[addVenue] Starting insert for:", venue.name);
-      
-      const { data, error } = await supabase.from("venues").insert({
-        name: venue.name,
-        type: "bar",
-        address: venue.address.title + ", " + venue.address.subtitle,
-        lat: venue.address.lat || 0,
-        lng: venue.address.lng || 0,
-        city: "",
-        match: venue.matches[0] || "",
-        match_time: "",
-        is_brazil_match: venue.matches.some((m) => m.includes("bra")),
-        big_screen: venue.perks.includes("big-screen"),
-        promo: venue.perks.includes("promo") ? "Promoção disponível" : null,
-        unverified: true,
-      }).select().single();
-      
-      if (error) {
-        console.error("[addVenue] Insert error:", error);
-        throw error;
-      }
-      
-      console.log("[addVenue] Insert success:", data);
-      return data;
-    },
-    onSuccess: () => {
-      console.log("[addVenue] Invalidating venues cache");
-      queryClient.invalidateQueries({ queryKey: ["venues"] });
-    },
-  });
+  const createVenue = useCreateVenue();
 
   const handleAddVenue = async (venue: { name: string; address: any; perks: string[]; matches: string[]; googlePlaceId: string }) => {
     try {
-      console.log("[handleAddVenue] Calling mutation for:", venue.name);
-      await addVenueMutation.mutateAsync(venue);
+      await createVenue.mutateAsync(venue);
       setShowAddModal(false);
       if (venue.address.lat && venue.address.lng) {
         flyToFnRef.current?.(venue.address.lat, venue.address.lng, 16);
