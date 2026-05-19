@@ -1,11 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState, lazy, Suspense, useEffect, useRef, useCallback } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCreateVenue } from "@/features/venues/hooks/useCreateVenue";
-import { Loader2 } from "lucide-react";
-import { supabase } from "@/shared/lib/supabase";
+import { Loader2, Crosshair, Search, MapPin, Plus } from "lucide-react";
 import {
   type FilterId,
+  FILTERS,
   RADIUS_OPTIONS,
   type RadiusOption,
   DEFAULT_RADIUS,
@@ -15,12 +15,9 @@ import { LazyAddVenueModal } from "@/features/venues/components/LazyAddVenueModa
 import { useVenues } from "@/shared/lib/venues";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { searchPlaces, getPlaceDetails, type GooglePlace } from "@/shared/lib/google-places";
-import { SearchBar } from "@/features/map/components/SearchBar";
-import { FilterBar } from "@/features/map/components/FilterBar";
-import { RadiusSelector } from "@/features/map/components/RadiusSelector";
-import { VenueList } from "@/features/map/components/VenueList";
-import { LocationButton } from "@/features/map/components/LocationButton";
-import { AddVenueButton } from "@/features/map/components/AddVenueButton";
+import { ClientOnly } from "@/shared/components/ClientOnly";
+import { VenueCard } from "@/features/venues/components/VenueCard";
+import { VenueCardSkeleton } from "@/features/venues/components/VenueCardSkeleton";
 
 const MapView = lazy(() => import("@/features/map/components/MapView").then((m) => ({ default: m.MapView })));
 

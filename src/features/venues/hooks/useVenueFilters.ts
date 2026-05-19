@@ -54,16 +54,12 @@ export function useVenueFilters({ defaultRadius = 5 }: UseVenueFiltersOptions = 
           if (filters.has("today") && venue.matchTime) {
             return true;
           }
-          // "brasil" = Brazil match
-          if (filters.has("brasil") && venue.isBrazilMatch) {
+          // "brazil" = Brazil match
+          if (filters.has("brazil") && venue.isBrazilMatch) {
             return true;
           }
-          // "telao" = has big screen
-          if (filters.has("telao") && venue.bigScreen) {
-            return true;
-          }
-          // "promo" = has promotion
-          if (filters.has("promo") && venue.promo) {
+          // "screen" = has big screen
+          if (filters.has("screen") && venue.bigScreen) {
             return true;
           }
           return filters.size === 0;
