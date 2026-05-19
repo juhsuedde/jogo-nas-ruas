@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import { useEffect } from "react";
@@ -56,7 +57,7 @@ function FlyTo({ lat, lng }: { lat: number; lng: number }) {
   return null;
 }
 
-export function MapView({
+function MapViewComponent({
   venues,
   activeId,
   onSelect,
@@ -102,3 +103,5 @@ export function MapView({
     </MapContainer>
   );
 }
+
+export const MapView = memo(MapViewComponent);

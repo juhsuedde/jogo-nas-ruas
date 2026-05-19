@@ -13,6 +13,7 @@ import { VenueCard } from "@/components/VenueCard";
 import { VenueCardSkeleton } from "@/components/VenueCardSkeleton";
 import { ClientOnly } from "@/components/ClientOnly";
 import { BottomNav } from "@/components/BottomNav";
+import { LazyAddVenueModal } from "@/components/LazyAddVenueModal";
 import { useVenues } from "@/lib/venues";
 import { useAuth } from "@/hooks/use-auth";
 import { searchPlaces, getPlaceDetails, type GooglePlace } from "@/lib/google-places";
@@ -83,8 +84,18 @@ function MapPage() {
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
-const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+const [showAddModal, setShowAddModal] = useState(false);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { data: allVenues = [], isLoading: loading } = useVenues();
+
+  const preloadAddVenueModal = useCallback(() => {
+    import("@/components/AddVenueModal");
+  }, []);
+
+  const handleAddVenue = (venue: { name: string; address: any; perks: string[]; matches: string[]; googlePlaceId: string }) => {
+    console.log("Add venue:", venue);
+    // TODO: Call mutation to add venue to database
+  };
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -227,14 +238,23 @@ const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
               </div>
             )}
           </div>
-          <Link
-            to="/add"
+
+          <button
+            onMouseEnter={preloadAddVenueModal}
+            onTouchStart={preloadAddVenueModal}
+            onClick={() => setShowAddModal(true)}
             className="size-12 rounded-full bg-brasil-yellow handmade-border flex items-center justify-center shrink-0"
             aria-label="Cadastrar local"
           >
             <Plus className="size-5 text-brasil-navy" strokeWidth={3} />
-          </Link>
+          </button>
         </div>
+
+        <LazyAddVenueModal
+          open={showAddModal}
+          onOpenChange={setShowAddModal}
+          onSubmit={handleAddVenue}
+        />
 
         <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-brasil-navy px-3 py-1 pointer-events-auto">
           <span className="text-brasil-yellow font-display text-xs tracking-wider">
