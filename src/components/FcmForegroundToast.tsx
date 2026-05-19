@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { onForegroundMessage } from "@/lib/firebase";
+import { onForegroundMessage } from "@/shared/lib/firebase";
 
 type Notif = { title: string; body: string };
 

@@ -10,36 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as PerfilRouteImport } from './routes/perfil'
-import { Route as MapaRouteImport } from './routes/mapa'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AddRouteImport } from './routes/add'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as VenueIdRouteImport } from './routes/venue.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerfilRoute = PerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MapaRoute = MapaRouteImport.update({
-  id: '/mapa',
-  path: '/mapa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AddRoute = AddRouteImport.update({
-  id: '/add',
-  path: '/add',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -47,78 +22,31 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VenueIdRoute = VenueIdRouteImport.update({
-  id: '/venue/$id',
-  path: '/venue/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/add': typeof AddRoute
-  '/login': typeof LoginRoute
-  '/mapa': typeof MapaRoute
-  '/perfil': typeof PerfilRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/venue/$id': typeof VenueIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/add': typeof AddRoute
-  '/login': typeof LoginRoute
-  '/mapa': typeof MapaRoute
-  '/perfil': typeof PerfilRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/venue/$id': typeof VenueIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/add': typeof AddRoute
-  '/login': typeof LoginRoute
-  '/mapa': typeof MapaRoute
-  '/perfil': typeof PerfilRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/venue/$id': typeof VenueIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/add'
-    | '/login'
-    | '/mapa'
-    | '/perfil'
-    | '/sitemap.xml'
-    | '/venue/$id'
+  fullPaths: '/' | '/sitemap.xml'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/add'
-    | '/login'
-    | '/mapa'
-    | '/perfil'
-    | '/sitemap.xml'
-    | '/venue/$id'
-  id:
-    | '__root__'
-    | '/'
-    | '/add'
-    | '/login'
-    | '/mapa'
-    | '/perfil'
-    | '/sitemap.xml'
-    | '/venue/$id'
+  to: '/' | '/sitemap.xml'
+  id: '__root__' | '/' | '/sitemap.xml'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AddRoute: typeof AddRoute
-  LoginRoute: typeof LoginRoute
-  MapaRoute: typeof MapaRoute
-  PerfilRoute: typeof PerfilRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  VenueIdRoute: typeof VenueIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,34 +58,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/perfil': {
-      id: '/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof PerfilRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mapa': {
-      id: '/mapa'
-      path: '/mapa'
-      fullPath: '/mapa'
-      preLoaderRoute: typeof MapaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/add': {
-      id: '/add'
-      path: '/add'
-      fullPath: '/add'
-      preLoaderRoute: typeof AddRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -165,24 +65,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/venue/$id': {
-      id: '/venue/$id'
-      path: '/venue/$id'
-      fullPath: '/venue/$id'
-      preLoaderRoute: typeof VenueIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AddRoute: AddRoute,
-  LoginRoute: LoginRoute,
-  MapaRoute: MapaRoute,
-  PerfilRoute: PerfilRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  VenueIdRoute: VenueIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
