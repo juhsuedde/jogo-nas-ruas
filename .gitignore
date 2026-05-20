@@ -54,3 +54,7 @@ coverage
 
 # TypeScript
 *.tsbuildinfo
+
+# TanStack Router generated
+routeTree.gen.ts
+routeTree.gen.tsx
