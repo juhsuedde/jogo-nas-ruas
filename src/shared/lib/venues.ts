@@ -94,7 +94,9 @@ export function useMyRsvp(venueId: string) {
         .eq("venue_id", venueId)
         .eq("user_id", u.user.id)
         .maybeSingle();
-      return data ? { going: true, guests: (data as { guests?: number }).guests ?? 1 } : null;
+      return data
+        ? { going: true, guests: (data as { guest_count?: number }).guest_count ?? 1 }
+        : null;
     },
   });
 }
@@ -109,7 +111,7 @@ export function useToggleRsvp(venueId: string) {
         const { error } = await supabase
           .from("rsvps")
           .upsert(
-            { venue_id: venueId, user_id: u.user.id, guests },
+            { venue_id: venueId, user_id: u.user.id, guest_count: guests },
             { onConflict: "venue_id,user_id" },
           );
         if (error) throw error;
