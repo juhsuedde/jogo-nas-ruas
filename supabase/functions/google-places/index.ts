@@ -34,18 +34,33 @@ Deno.serve(async (req: Request) => {
         pageSize: 5,
         languageCode: "pt-BR",
         regionCode: "BR",
+        rankPreference: "DISTANCE",
       };
 
-      // Use locationBias from frontend if provided, otherwise fall back to lat/lng
+      const effectiveRadius = locationBias?.circle?.radius || radius || 5000;
+
       if (locationBias) {
-        searchBody.locationBias = locationBias;
+        if (effectiveRadius < 20000) {
+          searchBody.locationRestriction = locationBias;
+        } else {
+          searchBody.locationBias = locationBias;
+        }
       } else if (lat && lng) {
-        searchBody.locationBias = {
-          circle: {
-            center: { latitude: lat, longitude: lng },
-            radius: Number(radius),
-          },
-        };
+        if (Number(radius) < 20000) {
+          searchBody.locationRestriction = {
+            circle: {
+              center: { latitude: lat, longitude: lng },
+              radius: Number(radius),
+            },
+          };
+        } else {
+          searchBody.locationBias = {
+            circle: {
+              center: { latitude: lat, longitude: lng },
+              radius: Number(radius),
+            },
+          };
+        }
       }
 
       const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
