@@ -102,14 +102,15 @@ function MapaPage() {
         showsAllMatches: venue.matches.length === 0,
       });
 
+      queryClient.refetchQueries({ queryKey: ["venues"], exact: false });
+      queryClient.refetchQueries({ queryKey: ["profile-data"], exact: false });
+
       setShowAddModal(false);
       toast.success("Local cadastrado com sucesso!");
 
       if (venue.address.lat && venue.address.lng) {
         flyToFnRef.current?.(venue.address.lat, venue.address.lng, 16);
       }
-
-      queryClient.invalidateQueries({ queryKey: ["venues"] });
     } catch (err) {
       console.error("Failed to create venue:", err);
       toast.error(err instanceof Error ? err.message : "Erro ao cadastrar local. Tente novamente.");
