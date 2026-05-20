@@ -13,20 +13,29 @@ type AuthCtx = {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+let authInitPromise: Promise<{ session: Session | null }> | null = null;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!authInitPromise) {
+      authInitPromise = supabase.auth.getSession();
+    }
+
+    authInitPromise.then(({ data }) => {
+      setSession(data.session);
+      setLoading(false);
+    });
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
-    });
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
       setLoading(false);
     });
+
     return () => subscription.unsubscribe();
   }, []);
 

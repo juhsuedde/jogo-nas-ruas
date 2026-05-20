@@ -13,7 +13,10 @@ import {
 import { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useProfileData } from "@/features/profile/hooks/use-profile-data";
-import { useMyReviewForVenue, useAddReview } from "@/features/profile/hooks/use-reviews";
+import { useAddReview } from "@/features/profile/hooks/use-reviews";
+import { supabase } from "@/shared/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
+import type { Review } from "@/features/profile/hooks/use-reviews";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
@@ -266,7 +269,24 @@ function HistoryRow({
 }: {
   match: { id: string; teams: string; date: string; venue: string; venueId: string; score: string };
 }) {
-  const { data: review, isLoading } = useMyReviewForVenue(match.venueId);
+  const { data: review, isLoading } = useQuery({
+    queryKey: ["my-review", match.venueId],
+    queryFn: async (): Promise<Review | null> => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("venue_id", match.venueId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 30_000,
+  });
   const addReview = useAddReview();
   const currentRating = review?.rating ?? 0;
   const [optimisticRating, setOptimisticRating] = useState<number | null>(null);
