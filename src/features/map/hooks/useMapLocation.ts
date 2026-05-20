@@ -18,6 +18,9 @@ export function useMapLocation({
   const [error, setError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const watchIdRef = useRef<number | null>(null);
+  const hasInitiallyLocatedRef = useRef(false);
+  const onLocationChangeRef = useRef(onLocationChange);
+  onLocationChangeRef.current = onLocationChange;
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -25,35 +28,31 @@ export function useMapLocation({
       return;
     }
 
-    // getCurrentPosition for immediate result
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
-        setLocation(loc);
-        onLocationChange?.(loc);
-      },
-      (err) => {
-        setError("Não foi possível obter sua localização");
-      },
-    );
+    const handlePosition = (position: GeolocationPosition) => {
+      const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
+      setLocation(loc);
+      if (!hasInitiallyLocatedRef.current) {
+        hasInitiallyLocatedRef.current = true;
+        onLocationChangeRef.current?.(loc);
+      }
+    };
 
-    // Watch position for continuous updates
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
-        setLocation(loc);
-        onLocationChange?.(loc);
-      },
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 30000 },
-    );
+    navigator.geolocation.getCurrentPosition(handlePosition, () => {}, {
+      enableHighAccuracy: true,
+      maximumAge: 60000,
+    });
+
+    watchIdRef.current = navigator.geolocation.watchPosition(handlePosition, () => {}, {
+      enableHighAccuracy: true,
+      maximumAge: 30000,
+    });
 
     return () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };
-  }, [onLocationChange]);
+  }, []);
 
   const centerOnUser = useCallback(() => {
     if (!navigator.geolocation) {
@@ -67,7 +66,7 @@ export function useMapLocation({
         const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
         setLocation(loc);
         setError(null);
-        onLocationChange?.(loc);
+        onLocationChangeRef.current?.(loc);
         setIsLocating(false);
       },
       (err) => {
@@ -88,7 +87,7 @@ export function useMapLocation({
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
-  }, [onLocationChange]);
+  }, []);
 
   return { location, error, isLocating, centerOnUser };
 }
