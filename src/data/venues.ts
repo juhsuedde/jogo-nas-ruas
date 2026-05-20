@@ -3,6 +3,9 @@ export type Venue = {
   name: string;
   type: "bar" | "restaurante" | "praça";
   address: string;
+  neighborhood?: string;
+  city: string;
+  state?: string;
   lat: number;
   lng: number;
   match: string;
@@ -12,8 +15,14 @@ export type Venue = {
   promo?: string;
   rsvps: number;
   unverified?: boolean;
-  city: string;
   phone?: string;
+  hasBigScreen?: boolean;
+  hasPromotion?: boolean;
+  hasParking?: boolean;
+  matchIds?: string[];
+  showsAllMatches?: boolean;
+  verified?: boolean;
+  status?: string;
 };
 
 export const VENUES: Venue[] = [

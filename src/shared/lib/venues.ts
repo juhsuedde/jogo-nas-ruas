@@ -5,40 +5,49 @@ import type { Venue } from "@/data/venues";
 type VenueRow = {
   id: string;
   name: string;
-  type: "bar" | "restaurante" | "praça";
   address: string;
+  neighborhood: string | null;
+  city_name: string;
+  state: string;
   lat: number;
   lng: number;
-  match: string;
-  match_time: string;
-  is_brazil_match: boolean;
   has_big_screen: boolean;
   has_promotion: boolean;
   has_parking: boolean;
+  promotions: string | null;
+  match_ids: string[];
+  shows_all_matches: boolean;
   verified: boolean;
   status: string;
-  unverified: boolean | null;
-  city: string;
-  phone: string | null;
+  rsvps?: { count: number }[];
 };
 
-function rowToVenue(r: VenueRow, rsvpCount: number): Venue {
+function rowToVenue(r: VenueRow): Venue {
   return {
     id: r.id,
     name: r.name,
-    type: r.type,
+    type: "bar" as const,
     address: r.address,
     lat: Number(r.lat),
     lng: Number(r.lng),
-    match: r.match,
-    matchTime: r.match_time,
-    isBrazilMatch: r.is_brazil_match,
+    match: "",
+    matchTime: "",
+    isBrazilMatch: false,
     bigScreen: r.has_big_screen,
-    promo: r.has_promotion ? "Tem promoção" : undefined,
-    unverified: r.unverified ?? false,
-    city: r.city,
-    phone: r.phone ?? undefined,
-    rsvps: rsvpCount,
+    promo: r.has_promotion ? (r.promotions ?? "Tem promoção") : undefined,
+    unverified: !r.verified,
+    city: r.city_name,
+    phone: undefined,
+    rsvps: r.rsvps?.[0]?.count ?? 0,
+    neighborhood: r.neighborhood ?? undefined,
+    state: r.state,
+    hasBigScreen: r.has_big_screen,
+    hasPromotion: r.has_promotion,
+    hasParking: r.has_parking,
+    matchIds: r.match_ids ?? [],
+    showsAllMatches: r.shows_all_matches,
+    verified: r.verified,
+    status: r.status,
   };
 }
 
@@ -48,7 +57,12 @@ export function useVenues() {
     queryFn: async (): Promise<Venue[]> => {
       const { data, error } = await supabase
         .from("venues")
-        .select("*, rsvps(count)")
+        .select(
+          `id, name, address, neighborhood, city_name, state, lat, lng,
+          has_big_screen, has_promotion, has_parking, promotions,
+          match_ids, shows_all_matches, verified, status,
+          created_at, rsvps(count)`,
+        )
         .order("created_at", { ascending: false });
       if (error) {
         throw new Error(`Falha ao carregar locais: ${error.message}`);
@@ -56,9 +70,7 @@ export function useVenues() {
       if (!data || data.length === 0) {
         return [];
       }
-      return (data as (VenueRow & { rsvps: { count: number }[] })[]).map((r) =>
-        rowToVenue(r, r.rsvps?.[0]?.count ?? 0),
-      );
+      return (data as VenueRow[]).map((r) => rowToVenue(r));
     },
     staleTime: 30_000,
   });
@@ -70,17 +82,21 @@ export function useVenue(id: string) {
     queryFn: async (): Promise<Venue | null> => {
       const { data, error } = await supabase
         .from("venues")
-        .select("*, rsvps(count)")
+        .select(
+          `id, name, address, neighborhood, city_name, state, lat, lng,
+          has_big_screen, has_promotion, has_parking, promotions,
+          match_ids, shows_all_matches, verified, status,
+          created_at, rsvps(count)`,
+        )
         .eq("id", id)
         .maybeSingle();
       if (error) {
         throw new Error(`Falha ao carregar local: ${error.message}`);
       }
       if (!data) {
-        throw new Error(`Local com ID ${id} não encontrado.`);
+        return null;
       }
-      const row = data as VenueRow & { rsvps: { count: number }[] };
-      return rowToVenue(row, row.rsvps?.[0]?.count ?? 0);
+      return rowToVenue(data as VenueRow);
     },
   });
 }
@@ -144,27 +160,32 @@ export function useAddVenue() {
       lat: number;
       lng: number;
       city: string;
-      match: string;
-      matchTime: string;
-      isBrazilMatch: boolean;
-      bigScreen: boolean;
-      promo?: string;
+      neighborhood?: string;
+      state?: string;
+      hasBigScreen: boolean;
+      hasPromotion: boolean;
+      hasParking: boolean;
+      promotions?: string;
+      matchIds?: string[];
+      showsAllMatches?: boolean;
     }) => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Faça login para cadastrar um local.");
+
       const { error } = await supabase.from("venues").insert({
         name: input.name,
-        type: "bar",
         address: input.address,
+        neighborhood: input.neighborhood || null,
+        city_name: input.city,
+        state: input.state || "SP",
         lat: input.lat,
         lng: input.lng,
-        city: input.city,
-        match: input.match,
-        match_time: input.matchTime,
-        is_brazil_match: input.isBrazilMatch,
-        has_big_screen: input.bigScreen,
-        has_promotion: !!input.promo,
-        has_parking: false,
+        has_big_screen: input.hasBigScreen,
+        has_promotion: input.hasPromotion,
+        has_parking: input.hasParking,
+        promotions: input.promotions || null,
+        match_ids: input.matchIds || [],
+        shows_all_matches: input.showsAllMatches ?? false,
         verified: false,
         status: "pending",
         created_by: u.user.id,

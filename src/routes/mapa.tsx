@@ -82,22 +82,24 @@ function MapaPage() {
     googlePlaceId: string;
   }) => {
     try {
-      const firstMatchId = venue.matches[0] ?? null;
-      const matchData = firstMatchId ? dbMatches.find((m) => m.id === firstMatchId) : null;
-
-      const matchName = matchData ? `${matchData.home_team} x ${matchData.away_team}` : "";
+      const parts = venue.address.subtitle?.split(",") ?? [];
+      const city = parts[0]?.trim() ?? "";
+      const state = parts[1]?.trim() ?? "SP";
 
       await addVenue.mutateAsync({
         name: venue.name.trim(),
         address: venue.address.title,
         lat: venue.address.lat,
         lng: venue.address.lng,
-        city: venue.address.subtitle?.split(",")[0]?.trim() ?? "",
-        match: matchName,
-        matchTime: matchData?.match_date ?? "",
-        isBrazilMatch: matchData?.isBrazilMatch ?? false,
-        bigScreen: venue.perks.includes("big-screen"),
-        promo: venue.perks.includes("promo") ? "Tem promoção" : undefined,
+        city: city,
+        neighborhood: null,
+        state: state,
+        hasBigScreen: venue.perks.includes("big-screen"),
+        hasPromotion: venue.perks.includes("promo"),
+        hasParking: venue.perks.includes("parking"),
+        promotions: venue.perks.includes("promo") ? "Tem promoção" : undefined,
+        matchIds: venue.matches,
+        showsAllMatches: venue.matches.length === 0,
       });
 
       setShowAddModal(false);
