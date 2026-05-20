@@ -49,52 +49,37 @@ async function fetchProfileData(): Promise<ProfileData> {
     throw new Error("Usuário não autenticado");
   }
 
-  const now = new Date().toISOString();
-
-  const [rsvpsResult, venuesResult] = await Promise.all([
+  const [rsvpsResult, venuesResult, matchesResult] = await Promise.all([
     supabase
       .from("rsvps")
       .select(
-        `
-        id,
-        guests,
-        created_at,
-        venue:venues(
-          id,
-          name,
-          address,
-          match,
-          match_time,
-          is_brazil_match,
-          city
-        )
-      `,
+        `id, guest_count, created_at, match_id,
+        venue:venues(id, name, address, city_name, has_big_screen)`,
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
 
     supabase
       .from("venues")
-      .select("*, rsvps(count)")
+      .select("id, name, address, verified, rsvps(count)")
       .eq("created_by", user.id)
       .order("created_at", { ascending: false }),
+
+    supabase
+      .from("matches")
+      .select("id, home_team, away_team, match_date, match_city")
+      .order("match_date", { ascending: true }),
   ]);
 
   if (rsvpsResult.error) throw rsvpsResult.error;
   if (venuesResult.error) throw venuesResult.error;
+  if (matchesResult.error) throw matchesResult.error;
 
   const rsvps = rsvpsResult.data || [];
   const venuesCreated = venuesResult.data || [];
+  const matches = matchesResult.data || [];
 
-  const venueMap = new Map<string, { name: string; address: string }>();
-  for (const r of rsvps) {
-    if (r.venue) {
-      venueMap.set(r.venue.id, {
-        name: r.venue.name,
-        address: r.venue.address,
-      });
-    }
-  }
+  const matchMap = new Map(matches.map((m) => [m.id, m]));
 
   const upcoming: ProfileUpcomingMatch[] = [];
   const history: ProfileHistoryMatch[] = [];
@@ -102,14 +87,19 @@ async function fetchProfileData(): Promise<ProfileData> {
   for (const r of rsvps) {
     if (!r.venue) continue;
 
-    const matchTime = new Date(r.venue.match_time);
+    const match = r.match_id ? matchMap.get(r.match_id) : null;
+
+    if (!match) continue;
+
+    const matchTime = new Date(match.match_date);
     const isPast = matchTime < new Date();
-    const flag = r.venue.is_brazil_match ? "🇧🇷" : "🌎";
+    const flag = match.home_team === "Brasil" || match.away_team === "Brasil" ? "🇧🇷" : "🌎";
+    const teams = `${match.home_team} x ${match.away_team}`;
 
     if (isPast) {
       history.push({
         id: r.id,
-        teams: r.venue.match,
+        teams,
         date: matchTime.toLocaleDateString("pt-BR", { day: "numeric", month: "short" }),
         venue: r.venue.name,
         venueId: r.venue.id,
@@ -117,21 +107,17 @@ async function fetchProfileData(): Promise<ProfileData> {
       });
     } else {
       const timeStr = matchTime
-        .toLocaleDateString("pt-BR", {
-          weekday: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+        .toLocaleDateString("pt-BR", { weekday: "short", hour: "2-digit", minute: "2-digit" })
         .replace(".", "");
 
       upcoming.push({
         id: r.id,
-        teams: r.venue.match,
+        teams,
         time: timeStr,
         venue: r.venue.name,
         venueId: r.venue.id,
         flag,
-        guests: r.guests || 1,
+        guests: r.guest_count || 1,
       });
     }
   }
@@ -139,30 +125,28 @@ async function fetchProfileData(): Promise<ProfileData> {
   upcoming.sort((a, b) => {
     const rsvpA = rsvps.find((r) => r.id === a.id);
     const rsvpB = rsvps.find((r) => r.id === b.id);
-    return (
-      new Date(rsvpA?.venue?.match_time ?? 0).getTime() -
-      new Date(rsvpB?.venue?.match_time ?? 0).getTime()
-    );
+    const mA = rsvpA?.match_id ? matchMap.get(rsvpA.match_id) : null;
+    const mB = rsvpB?.match_id ? matchMap.get(rsvpB.match_id) : null;
+    return new Date(mA?.match_date ?? 0).getTime() - new Date(mB?.match_date ?? 0).getTime();
   });
 
   history.sort((a, b) => {
     const rsvpA = rsvps.find((r) => r.id === a.id);
     const rsvpB = rsvps.find((r) => r.id === b.id);
-    return (
-      new Date(rsvpB?.venue?.match_time ?? 0).getTime() -
-      new Date(rsvpA?.venue?.match_time ?? 0).getTime()
-    );
+    const mA = rsvpA?.match_id ? matchMap.get(rsvpA.match_id) : null;
+    const mB = rsvpB?.match_id ? matchMap.get(rsvpB.match_id) : null;
+    return new Date(mB?.match_date ?? 0).getTime() - new Date(mA?.match_date ?? 0).getTime();
   });
 
   const myVenues: ProfileVenue[] = venuesCreated.map((v) => ({
     id: v.id,
     name: v.name,
     address: v.address,
-    verified: !v.unverified,
-    rsvps: (v as any).rsvps?.[0]?.count ?? 0,
+    verified: v.verified ?? false,
+    rsvps: (v as { rsvps?: { count: number }[] }).rsvps?.[0]?.count ?? 0,
   }));
 
-  const confirmedCount = rsvps.reduce((acc, r) => acc + (r.guests || 1), 0);
+  const confirmedCount = rsvps.reduce((acc, r) => acc + (r.guest_count || 1), 0);
   const pastGamesCount = history.length;
 
   return {
