@@ -1,103 +1,66 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useMemo, useState, lazy, Suspense, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { Search, X, Loader2, Navigation, MapPin } from "lucide-react";
+import { MapView } from "@/features/map/components/MapView";
+import { FilterBar } from "@/features/map/components/FilterBar";
+import { RadiusSelector } from "@/features/map/components/RadiusSelector";
+import { VenueList } from "@/features/map/components/VenueList";
+import { LocationButton } from "@/features/map/components/LocationButton";
+import { AddVenueButton } from "@/features/map/components/AddVenueButton";
+import { useVenues } from "@/features/venues/hooks/useVenues";
 import { useCreateVenue } from "@/features/venues/hooks/useCreateVenue";
-import { Loader2, Crosshair, Search, MapPin, Plus } from "lucide-react";
-import {
-  type FilterId,
-  FILTERS,
-  RADIUS_OPTIONS,
-  type RadiusOption,
-  DEFAULT_RADIUS,
-} from "@/data/venues";
-import { BottomSheet } from "@/components/BottomSheet";
-import { LazyAddVenueModal } from "@/features/venues/components/LazyAddVenueModal";
-import { useVenues } from "@/shared/lib/venues";
-import { useAuth } from "@/features/auth/hooks/use-auth";
-import { searchPlaces, getPlaceDetails, type GooglePlace } from "@/shared/lib/google-places";
+import { searchPlaces, getPlaceDetails } from "@/shared/lib/google-places";
+import { calculateDistance, getZoomForRadius } from "@/shared/lib/utils";
+import type { GooglePlace } from "@/shared/lib/google-places";
 import { ClientOnly } from "@/shared/components/ClientOnly";
-import { VenueCard } from "@/features/venues/components/VenueCard";
-import { VenueCardSkeleton } from "@/features/venues/components/VenueCardSkeleton";
 
-const MapView = lazy(() => import("@/features/map/components/MapView").then((m) => ({ default: m.MapView })));
+const FILTERS = [
+  { id: "today" as const, label: "Hoje" },
+  { id: "brazil" as const, label: "Jogos do Brasil" },
+  { id: "screen" as const, label: "Telão" },
+];
 
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
+const RADIUS_OPTIONS = [1, 3, 5, 10];
+const DEFAULT_RADIUS = 5;
 
-function getZoomForRadius(radius: RadiusOption): number {
-  switch (radius) {
-    case 1:
-      return 15;
-    case 3:
-      return 14;
-    case 5:
-      return 13;
-    case 10:
-      return 12;
-    case 20:
-      return 11;
-    default:
-      return 13;
-  }
-}
+type FilterId = (typeof FILTERS)[number]["id"];
 
 export const Route = createFileRoute("/mapa")({
-  head: () => {
-    const url = "https://jogonasruas.lovable.app/mapa";
-    const title = "Mapa da Copa 2026 — Jogo nas Ruas";
-    const description =
-      "Encontre bares, restaurantes e praças transmitindo a Copa 2026 perto de você.";
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:url", content: url },
-      ],
-      links: [{ rel: "canonical", href: url }],
-    };
-  },
-  component: MapPage,
+  head: () => ({
+    meta: [
+      { title: "Mapa da Copa 2026 — Jogo nas Ruas" },
+      { name: "description", content: "Encontre bares e locais para assistir aos jogos da Copa 2026." },
+    ],
+  }),
+  component: MapaPage,
 });
 
-function MapPage() {
+function MapaPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "LA";
-  const [active, setActive] = useState<string | null>(null);
+  const [activeId, setActive] = useState<string | null>(null);
   const [filters, setFilters] = useState<Set<FilterId>>(new Set(["today"]));
   const [query, setQuery] = useState("");
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [radius, setRadius] = useState<RadiusOption>(DEFAULT_RADIUS);
+  const [radius, setRadius] = useState(DEFAULT_RADIUS);
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
-const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flyToFnRef = useRef<((lat: number, lng: number, zoom?: number) => void) | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const { data: allVenues = [], isLoading: loading } = useVenues();
   const queryClient = useQueryClient();
 
+  const createVenue = useCreateVenue();
+
   const handleCenterOnUser = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationError("Geolocalização não suportada");
       return;
     }
-
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -127,13 +90,13 @@ const [showAddModal, setShowAddModal] = useState(false);
     );
   }, []);
 
-const preloadAddVenueModal = useCallback(() => {
-    import("@/features/venues/components/AddVenueModal");
-  }, []);
-
-  const createVenue = useCreateVenue();
-
-  const handleAddVenue = async (venue: { name: string; address: any; perks: string[]; matches: string[]; googlePlaceId: string }) => {
+  const handleAddVenue = async (venue: {
+    name: string;
+    address: any;
+    perks: string[];
+    matches: string[];
+    googlePlaceId: string;
+  }) => {
     try {
       await createVenue.mutateAsync(venue);
       setShowAddModal(false);
@@ -191,26 +154,20 @@ const preloadAddVenueModal = useCallback(() => {
       setLocationError("Geolocalização não suportada");
       return;
     }
-
-    // First try getCurrentPosition for immediate result
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setUserLocation([position.coords.latitude, position.coords.longitude]);
         setLocationError(null);
       },
-      () => {}, // Ignore errors on getCurrentPosition
+      () => {},
       { enableHighAccuracy: true, timeout: 5000 }
     );
-
-    // Also watch for continuous updates
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        console.log("Map location updated:", position.coords.latitude, position.coords.longitude);
         setUserLocation([position.coords.latitude, position.coords.longitude]);
         setLocationError(null);
       },
       (error) => {
-        console.log("Watch position error:", error.code);
         switch (error.code) {
           case error.PERMISSION_DENIED:
             setLocationError("Permissão negada");
@@ -225,13 +182,8 @@ const preloadAddVenueModal = useCallback(() => {
             setLocationError("Erro desconhecido");
         }
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 30000,
-      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
     );
-
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
@@ -249,7 +201,7 @@ const preloadAddVenueModal = useCallback(() => {
     return allVenues.filter((v) => {
       if (filters.has("brazil") && !v.isBrazilMatch) return false;
       if (filters.has("screen") && !v.bigScreen) return false;
-      if (query && !`${v.name} ${v.address} ${v.match}`.toLowerCase().includes(query.toLowerCase()))
+      if (query && !\`\${v.name} \${v.address} \${v.match}\`.toLowerCase().includes(query.toLowerCase()))
         return false;
       if (userLocation) {
         const distance = calculateDistance(userLocation[0], userLocation[1], v.lat, v.lng);
@@ -263,181 +215,112 @@ const preloadAddVenueModal = useCallback(() => {
   const mapZoom = userLocation ? getZoomForRadius(radius) : undefined;
 
   return (
-    <main className="absolute inset-0 overflow-hidden">
-      <h1 className="sr-only">Mapa da Copa 2026 — onde assistir aos jogos</h1>
-      <ClientOnly fallback={<div className="absolute inset-0 bg-muted animate-pulse" />}>
-        <Suspense fallback={<div className="absolute inset-0 bg-muted animate-pulse" />}>
+    <div className="h-full flex flex-col relative">
+      {/* Map */}
+      <div className="flex-1 relative">
+        <ClientOnly>
           <MapView
             venues={venues}
-            activeId={active}
-            onSelect={(id) => setActive(id)}
+            activeId={activeId}
+            onSelect={setActive}
             center={mapCenter}
             zoom={mapZoom}
             selectedPlace={selectedPlace}
             onFlyTo={(fn) => { flyToFnRef.current = fn; }}
           />
+        </ClientOnly>
 
-      {/* Location button */}
-      <button
-        onClick={handleCenterOnUser}
-        disabled={isLocating}
-        className="absolute bottom-24 left-1/2 -translate-x-1/2 z-[1000] size-14 bg-white rounded-full shadow-xl border-2 border-brasil-green flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
-        aria-label="Centralizar na minha localização"
-      >
-        {isLocating ? (
-          <Loader2 className="size-5 text-brasil-green animate-spin" />
-        ) : (
-          <Crosshair className="size-5 text-brasil-navy" />
-        )}
-      </button>
-
-      {/* Location error toast */}
-      {locationError && (
-        <div className="absolute top-20 left-4 right-4 z-[1000] bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm shadow-lg flex items-center justify-between">
-          <span>{locationError}</span>
-          <button onClick={() => setLocationError(null)} className="font-bold">
-            ×
-          </button>
-        </div>
-      )}
-        </Suspense>
-      </ClientOnly>
-
-      {/* Top bar */}
-      <div className="absolute top-0 inset-x-0 z-[600] p-3 pt-4 pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <div className="flex-1 rounded-full bg-card handmade-border flex items-center gap-2 px-4 py-2.5 relative">
-            <Search className="size-4 text-brasil-navy shrink-0" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="buscar bar, jogo ou bairro"
-              aria-label="Buscar bar, jogo ou bairro"
-              className="flex-1 bg-transparent outline-none text-sm placeholder:text-brasil-navy/50"
-            />
-            {isSearching && <Loader2 className="size-4 text-brasil-navy animate-spin shrink-0" />}
-            {selectedPlace && !isSearching && (
-              <button
-                onClick={clearSearch}
-                className="size-4 text-brasil-navy/50 hover:text-brasil-navy shrink-0"
-                aria-label="Limpar busca"
-              >
-                ✕
-              </button>
-            )}
-            <Link
-              to={user ? "/perfil" : "/login"}
-              aria-label="Meu perfil"
-              className="size-7 rounded-full bg-brasil-green flex items-center justify-center text-white font-display text-[11px] shrink-0"
-            >
-              {initials}
-            </Link>
-
-            {/* Google Places Dropdown */}
-            {!selectedPlace && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#0A2540] rounded-2xl overflow-hidden border-2 border-brasil-yellow/30 shadow-xl z-[700] max-h-64 overflow-y-auto">
-                {searchResults.map((place) => (
-                  <button
-                    key={place.place_id}
-                    onClick={() => handleSelectPlace(place)}
-                    className="w-full flex items-center gap-3 p-3 text-left text-white hover:bg-brasil-yellow/20 transition-colors border-b border-white/10 last:border-b-0"
-                  >
-                    <MapPin className="size-4 text-brasil-yellow shrink-0" />
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm truncate">{place.name}</p>
-                      <p className="text-xs text-white/60 truncate">{place.formatted_address}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button
-            onMouseEnter={preloadAddVenueModal}
-            onTouchStart={preloadAddVenueModal}
-            onClick={() => setShowAddModal(true)}
-            className="size-12 rounded-full bg-brasil-yellow handmade-border flex items-center justify-center shrink-0"
-            aria-label="Cadastrar local"
-          >
-            <Plus className="size-5 text-brasil-navy" strokeWidth={3} />
-          </button>
+        {/* Location button */}
+        <div className="absolute bottom-4 right-4 z-[1000]">
+          <LocationButton onClick={handleCenterOnUser} isLocating={isLocating} />
         </div>
 
-        <LazyAddVenueModal
-          open={showAddModal}
-          onOpenChange={setShowAddModal}
-          onSubmit={handleAddVenue}
-        />
-
-        <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-brasil-navy px-3 py-1 pointer-events-auto">
-          <span className="text-brasil-yellow font-display text-xs tracking-wider">
-            ⚽ JOGO NAS RUAS
-          </span>
-          <span className="text-white/60 text-[10px]">· copa 2026</span>
-        </div>
-
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 pointer-events-auto scrollbar-none">
-          {FILTERS.map((f) => (
-            <button
-              key={f.id}
-              className="chip"
-              data-active={filters.has(f.id)}
-              onClick={() => toggle(f.id)}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-
-        {userLocation && (
-          <div className="mt-2 flex items-center gap-2 px-2 py-1 bg-card rounded-lg border pointer-events-auto">
-            <MapPin className="size-4 text-brasil-green" />
-            <span className="text-xs text-muted-foreground">Próximo</span>
-            <div className="flex gap-1">
-              {RADIUS_OPTIONS.map((r) => (
-                <button
-                  key={r}
-                  className={`text-xs px-2 py-0.5 rounded ${
-                    radius === r ? "bg-brasil-green text-white" : "bg-muted text-muted-foreground"
-                  }`}
-                  onClick={() => setRadius(r)}
-                >
-                  {r}km
-                </button>
-              ))}
-            </div>
+        {/* Location error toast */}
+        {locationError && (
+          <div className="absolute top-4 left-4 right-4 z-[1000] bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700 flex items-center gap-2">
+            <MapPin className="w-4 h-4 shrink-0" />
+            {locationError}
           </div>
         )}
       </div>
 
-      <BottomSheet>
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="font-display text-lg text-brasil-navy">onde a galera tá</h2>
-          <span className="text-xs font-bold text-muted-foreground">{venues.length} locais</span>
-        </div>
-        <div className="space-y-3 pb-20">
-          {loading
-            ? Array.from({ length: 3 }).map((_, i) => <VenueCardSkeleton key={i} />)
-            : venues.map((v) => (
-                <VenueCard
-                  key={v.id}
-                  venue={v}
-                  active={active === v.id}
-                  onClick={() => {
-                    setActive(v.id);
-                    navigate({ to: "/venue/$id", params: { id: v.id } });
-                  }}
-                />
-              ))}
-          {venues.length === 0 && (
-            <div className="text-center py-10 text-muted-foreground">
-              <div className="text-4xl mb-2">😶‍🌫️</div>
-              <p className="text-sm">Nenhum local com esses filtros. Que tal cadastrar um?</p>
-            </div>
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 z-[1000] p-4 space-y-3">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="buscar bar, jogo ou bairro"
+            aria-label="Buscar bar, jogo ou bairro"
+            className="w-full pl-10 pr-10 py-3 rounded-2xl bg-white/95 backdrop-blur border-2 border-brasil-navy shadow-lg text-sm placeholder:text-muted-foreground outline-none"
+          />
+          {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />}
+          {selectedPlace && !isSearching && (
+            <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
           )}
         </div>
-      </BottomSheet>
-    </main>
+
+        {/* Google Places Dropdown */}
+        {!selectedPlace && searchResults.length > 0 && (
+          <div className="bg-white/95 backdrop-blur rounded-2xl border-2 border-brasil-navy shadow-lg overflow-hidden">
+            {searchResults.map((place) => (
+              <button
+                key={place.place_id}
+                onClick={() => handleSelectPlace(place)}
+                className="w-full text-left px-4 py-3 hover:bg-brasil-cream flex items-center gap-3 border-b border-border last:border-0"
+              >
+                <MapPin className="w-4 h-4 text-brasil-navy shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-bold text-sm text-brasil-navy truncate">{place.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{place.formatted_address}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Brand pill */}
+        <div className="inline-flex items-center gap-2 bg-brasil-navy text-white rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider">
+          <span>⚽</span>
+          <span>JOGO NAS RUAS</span>
+          <span className="text-brasil-yellow">· copa 2026</span>
+        </div>
+
+        {/* Filters */}
+        <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
+
+        {/* Radius */}
+        {userLocation && (
+          <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
+        )}
+      </div>
+
+      {/* Venue list bottom sheet */}
+      <div className="shrink-0 bg-white rounded-t-3xl border-t-2 border-brasil-navy shadow-[0_-4px_20px_rgba(0,0,0,0.1)]">
+        <div className="p-4">
+          <div className="w-12 h-1 bg-muted rounded-full mx-auto mb-4" />
+          <h2 className="font-display text-lg text-brasil-navy mb-1">onde a galera tá</h2>
+          <p className="text-sm text-muted-foreground mb-3">{venues.length} locais</p>
+
+          <VenueList
+            venues={venues}
+            loading={loading}
+            activeId={activeId}
+            onSelect={(id) => {
+              setActive(id);
+              navigate({ to: "/venue/$id", params: { id } });
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Add venue button */}
+      <AddVenueButton onClick={() => setShowAddModal(true)} />
+    </div>
   );
 }

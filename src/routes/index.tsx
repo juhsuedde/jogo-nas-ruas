@@ -57,42 +57,30 @@ function Splash() {
   if (!showSplash) return null;
 
   return (
-    <main className="absolute inset-0 bg-brasil-green flex flex-col items-center justify-center overflow-hidden">
+    <div className="h-full w-full flex flex-col items-center justify-center bg-brasil-cream relative overflow-hidden animate-fade-in">
       {/* Decorative dot pattern */}
       <div
-        className="absolute inset-0 opacity-25"
+        className="absolute inset-0 opacity-10"
         style={{
-          backgroundImage: "radial-gradient(oklch(0.88 0.18 95) 1.5px, transparent 1.5px)",
-          backgroundSize: "22px 22px",
+          backgroundImage: "radial-gradient(circle, var(--brasil-navy) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
         }}
       />
+
       {/* Yellow blob */}
-      <div className="absolute -top-20 -right-20 size-72 rounded-full bg-brasil-yellow/30 blur-2xl" />
-      <div className="absolute -bottom-24 -left-16 size-72 rounded-full bg-brasil-navy/40 blur-2xl" />
+      <div className="absolute top-1/4 -left-20 w-64 h-64 bg-brasil-yellow/30 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-20 w-64 h-64 bg-brasil-green/20 rounded-full blur-3xl" />
 
-      <div className="relative flex flex-col items-center gap-4 px-8 text-center animate-fade-in">
-        <div className="size-24 rounded-3xl bg-brasil-yellow handmade-border flex items-center justify-center text-5xl animate-bounce">
-          ⚽
+      <div className="relative z-10 flex flex-col items-center gap-6">
+        <div className="w-24 h-24 bg-brasil-yellow rounded-3xl flex items-center justify-center shadow-lg border-4 border-brasil-navy rotate-3">
+          <span className="text-5xl">⚽</span>
         </div>
-        <h1 className="font-display text-4xl text-white leading-tight tracking-wide">
-          JOGO NAS RUAS
-          <br />
-          <span className="text-brasil-yellow text-2xl">Mapa da Copa 2026</span>
-        </h1>
-        <p className="text-white/90 font-bold text-sm">copa 2026 · brasil</p>
 
-        <div className="mt-6 flex gap-1">
-          <span className="size-2 rounded-full bg-brasil-yellow animate-pulse" />
-          <span
-            className="size-2 rounded-full bg-brasil-yellow animate-pulse"
-            style={{ animationDelay: "150ms" }}
-          />
-          <span
-            className="size-2 rounded-full bg-brasil-yellow animate-pulse"
-            style={{ animationDelay: "300ms" }}
-          />
+        <div className="text-center space-y-2">
+          <h1 className="font-display text-4xl text-brasil-navy tracking-tight">JOGO NAS RUAS</h1>
+          <p className="text-lg text-muted-foreground font-medium">copa 2026 · brasil</p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

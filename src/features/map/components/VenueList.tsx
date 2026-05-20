@@ -4,39 +4,41 @@ import type { Venue } from "@/data/venues";
 
 interface VenueListProps {
   venues: Venue[];
+  loading: boolean;
   activeId: string | null;
   onSelect: (id: string) => void;
-  isLoading: boolean;
 }
 
-export function VenueList({ venues, activeId, onSelect, isLoading }: VenueListProps) {
-  if (isLoading) {
+export function VenueList({ venues, loading, activeId, onSelect }: VenueListProps) {
+  if (loading) {
     return (
-      <div className="space-y-3 px-4 pb-4">
-        <VenueCardSkeleton />
-        <VenueCardSkeleton />
-        <VenueCardSkeleton />
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <VenueCardSkeleton key={i} />
+        ))}
       </div>
     );
   }
 
   if (venues.length === 0) {
     return (
-      <div className="px-4 pb-4 text-center">
-        <p className="text-brasil-navy/50 text-sm">Nenhum local encontrado nessa área.</p>
-        <p className="text-brasil-navy/40 text-xs mt-1">Tente aumentar o raio de busca.</p>
+      <div className="text-center py-8">
+        <p className="text-4xl mb-2">😶‍🌫️</p>
+        <p className="text-sm text-muted-foreground">
+          Nenhum local com esses filtros. Que tal cadastrar um?
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3 px-4 pb-4">
-      {venues.map((venue) => (
+    <div className="space-y-3">
+      {venues.map((v) => (
         <VenueCard
-          key={venue.id}
-          venue={venue}
-          active={venue.id === activeId}
-          onClick={() => onSelect(venue.id)}
+          key={v.id}
+          venue={v}
+          isActive={v.id === activeId}
+          onClick={() => onSelect(v.id)}
         />
       ))}
     </div>
