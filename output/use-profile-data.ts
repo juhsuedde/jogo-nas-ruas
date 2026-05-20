@@ -68,14 +68,15 @@ async function fetchProfileData(): Promise<ProfileData> {
           is_brazil_match,
           city
         )
-      `,
+        `,
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
 
+    // ✅ FIX: busca venues + count de rsvps em UMA query com JOIN
     supabase
       .from("venues")
-      .select("*, rsvps(count)")
+      .select("id, name, address, unverified, rsvps(count)")
       .eq("created_by", user.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -86,7 +87,7 @@ async function fetchProfileData(): Promise<ProfileData> {
   const rsvps = rsvpsResult.data || [];
   const venuesCreated = venuesResult.data || [];
 
-  const venueMap = new Map<string, { name: string; address: string }>();
+  const venueMap = new Map();
   for (const r of rsvps) {
     if (r.venue) {
       venueMap.set(r.venue.id, {
@@ -154,7 +155,8 @@ async function fetchProfileData(): Promise<ProfileData> {
     );
   });
 
-const myVenues: ProfileVenue[] = venuesCreated.map((v) => ({
+  // ✅ FIX: rsvp count já veio no JOIN — sem loop de queries N+1
+  const myVenues: ProfileVenue[] = venuesCreated.map((v) => ({
     id: v.id,
     name: v.name,
     address: v.address,

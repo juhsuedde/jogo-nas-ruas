@@ -50,6 +50,7 @@ export function useVenues() {
       if (error) {
         throw new Error(`Falha ao carregar locais: ${error.message}`);
       }
+      // ✅ FIX: retorna [] em vez de throw quando banco está vazio
       if (!data || data.length === 0) {
         return [];
       }
@@ -64,7 +65,7 @@ export function useVenues() {
 export function useVenue(id: string) {
   return useQuery({
     queryKey: ["venue", id],
-    queryFn: async (): Promise<Venue | null> => {
+    queryFn: async (): Promise<Venue> => {
       const { data, error } = await supabase
         .from("venues")
         .select("*, rsvps(count)")

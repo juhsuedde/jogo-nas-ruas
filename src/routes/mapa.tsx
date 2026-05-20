@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search, X, Loader2, Navigation, MapPin } from "lucide-react";
-import { MapView } from "@/features/map/components/MapView";
+
+const MapView = lazy(() => import("@/features/map/components/MapView").then(m => ({ default: m.MapView })));
+
 import { FilterBar } from "@/features/map/components/FilterBar";
 import { RadiusSelector } from "@/features/map/components/RadiusSelector";
 import { VenueList } from "@/features/map/components/VenueList";
@@ -184,17 +186,26 @@ function MapaPage() {
       {/* Map */}
       <div className="flex-1 relative">
         <ClientOnly>
-          <MapView
-            venues={venues}
-            activeId={activeId}
-            onSelect={setActive}
-            center={mapCenter}
-            zoom={mapZoom}
-            selectedPlace={selectedPlace}
-            onFlyTo={(fn) => {
-              flyToFnRef.current = fn;
-            }}
-          />
+          <Suspense fallback={
+            <div className="h-full flex items-center justify-center bg-brasil-cream">
+              <div className="text-center">
+                <Loader2 className="size-8 text-brasil-navy animate-spin mx-auto mb-2" />
+                <p className="text-sm text-brasil-navy/60">carregando mapa...</p>
+              </div>
+            </div>
+          }>
+            <MapView
+              venues={venues}
+              activeId={activeId}
+              onSelect={setActive}
+              center={mapCenter}
+              zoom={mapZoom}
+              selectedPlace={selectedPlace}
+              onFlyTo={(fn) => {
+                flyToFnRef.current = fn;
+              }}
+            />
+          </Suspense>
         </ClientOnly>
 
         {/* Location button */}

@@ -4,7 +4,6 @@ import { VenueDetail } from "@/features/venues/components/VenueDetail";
 import { useVenue, useToggleRsvp, useMyRsvp } from "@/shared/lib/venues";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { toast } from "sonner";
-import { requestNotificationPermission } from "@/shared/lib/firebase";
 import { supabase } from "@/shared/lib/supabase";
 
 export const Route = createFileRoute("/venue/$id")({
@@ -144,12 +143,14 @@ function VenuePage() {
       await toggleRsvp.mutateAsync({ going: next, guests: nextGuests });
       if (next && !wasGoing) {
         // Register for push reminders on first opt-in
+        const { requestNotificationPermission } = await import("@/shared/lib/firebase");
         const token = await requestNotificationPermission();
         if (token) {
-          const { error: insErr } = await supabase
-            .from("fcm_tokens")
-            .upsert({ user_id: user.id, token }, { onConflict: "token" });
-          if (insErr) console.error("fcm_tokens upsert:", insErr);
+          const { error: insErr } = await supabase.rpc("upsert_user_fcm_token", {
+            p_user_id: user.id,
+            p_token: token,
+          });
+          if (insErr) console.error("upsert_user_fcm_token:", insErr);
           toast.success("Você receberá um lembrete 1h antes do jogo!");
         }
       }
