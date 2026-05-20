@@ -123,14 +123,27 @@ export function useMyRsvp(venueId: string) {
 export function useToggleRsvp(venueId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ going, guests }: { going: boolean; guests: number }) => {
+    mutationFn: async ({
+      going,
+      guests,
+      matchId,
+    }: {
+      going: boolean;
+      guests: number;
+      matchId?: string;
+    }) => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Faça login para confirmar presença.");
       if (going) {
         const { error } = await supabase
           .from("rsvps")
           .upsert(
-            { venue_id: venueId, user_id: u.user.id, guest_count: guests },
+            {
+              venue_id: venueId,
+              user_id: u.user.id,
+              guest_count: guests,
+              match_id: matchId ?? null,
+            },
             { onConflict: "venue_id,user_id" },
           );
         if (error) throw error;
