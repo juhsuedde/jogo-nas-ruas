@@ -18,6 +18,7 @@ export const Route = createFileRoute("/__root")({
 });
 
 function RootLayout() {
+  // Forced deploy trigger
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
