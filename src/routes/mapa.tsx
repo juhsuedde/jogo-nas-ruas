@@ -187,7 +187,8 @@ function MapaPage() {
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  const toggle = (id: FilterId) => {
+  const toggle = (id: string) => {
+    const fid = id as FilterId;
     const next = new Set(filters);
     if (next.has(id)) {
       next.delete(id);
