@@ -40,27 +40,20 @@ Deno.serve(async (req: Request) => {
       const effectiveRadius = locationBias?.circle?.radius || radius || 5000;
 
       if (locationBias) {
-        if (effectiveRadius < 20000) {
-          searchBody.locationRestriction = locationBias;
-        } else {
-          searchBody.locationBias = locationBias;
-        }
+        searchBody.locationRestriction = {
+          circle: {
+            center: locationBias.circle.center,
+            radius: Math.min(effectiveRadius, 10000),
+          },
+        };
       } else if (lat && lng) {
-        if (Number(radius) < 20000) {
-          searchBody.locationRestriction = {
-            circle: {
-              center: { latitude: lat, longitude: lng },
-              radius: Number(radius),
-            },
-          };
-        } else {
-          searchBody.locationBias = {
-            circle: {
-              center: { latitude: lat, longitude: lng },
-              radius: Number(radius),
-            },
-          };
-        }
+        const searchRadius = Math.min(Number(radius) || 5000, 10000);
+        searchBody.locationRestriction = {
+          circle: {
+            center: { latitude: lat, longitude: lng },
+            radius: searchRadius,
+          },
+        };
       }
 
       const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
