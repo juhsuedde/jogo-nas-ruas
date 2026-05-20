@@ -247,7 +247,7 @@ function MapaPage() {
           </Suspense>
         </ClientOnly>
 
-        <div className="absolute bottom-6 right-4 z-[500]">
+        <div className="absolute bottom-6 right-4 z-[9999]" onClick={(e) => e.stopPropagation()}>
           <LocationButton onClick={centerOnUser} isLocating={isLocating} />
         </div>
 

@@ -12,8 +12,11 @@ type VenueRow = {
   match: string;
   match_time: string;
   is_brazil_match: boolean;
-  big_screen: boolean;
-  promo: string | null;
+  has_big_screen: boolean;
+  has_promotion: boolean;
+  has_parking: boolean;
+  verified: boolean;
+  status: string;
   unverified: boolean | null;
   city: string;
   phone: string | null;
@@ -30,8 +33,8 @@ function rowToVenue(r: VenueRow, rsvpCount: number): Venue {
     match: r.match,
     matchTime: r.match_time,
     isBrazilMatch: r.is_brazil_match,
-    bigScreen: r.big_screen,
-    promo: r.promo ?? undefined,
+    bigScreen: r.has_big_screen,
+    promo: r.has_promotion ? "Tem promoção" : undefined,
     unverified: r.unverified ?? false,
     city: r.city,
     phone: r.phone ?? undefined,
@@ -159,9 +162,11 @@ export function useAddVenue() {
         match: input.match,
         match_time: input.matchTime,
         is_brazil_match: input.isBrazilMatch,
-        big_screen: input.bigScreen,
-        promo: input.promo,
-        unverified: true,
+        has_big_screen: input.bigScreen,
+        has_promotion: !!input.promo,
+        has_parking: false,
+        verified: false,
+        status: "pending",
         created_by: u.user.id,
       });
       if (error) throw error;
