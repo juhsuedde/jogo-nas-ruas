@@ -10,7 +10,6 @@ lerna-debug.log*
 # Dependencies
 node_modules
 
-# Build outputs
 dist
 dist-ssr
 .output
@@ -23,9 +22,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
-# Environment variables
-.env
+# Environment variables (local/dev only — .env is committed for production)
 .env.local
+.env.development
 .env.*.local
 
 # Editor directories and files
