@@ -1,7 +1,7 @@
 import { memo, useRef, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
-import type { Venue } from "@/data/venues";
+import type { Venue } from "@/features/venues/hooks/useVenues";
 
 const greenIcon = L.divIcon({
   className: "",
