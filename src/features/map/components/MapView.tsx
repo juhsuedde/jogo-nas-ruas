@@ -133,4 +133,6 @@ function MapViewComponent({
 
 export const MapView = memo(MapViewComponent);
 
-export const mapViewFlyTo = (ref: React.MutableRefObject<((lat: number, lng: number, zoom?: number) => void) | null>) => ref.current;
+export const mapViewFlyTo = (
+  ref: React.MutableRefObject<((lat: number, lng: number, zoom?: number) => void) | null>,
+) => ref.current;

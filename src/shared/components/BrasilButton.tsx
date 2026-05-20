@@ -16,7 +16,8 @@ export function BrasilButton({
   disabled,
   ...props
 }: BrasilButtonProps) {
-  const baseStyles = "font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center";
+  const baseStyles =
+    "font-bold uppercase tracking-wider rounded-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center";
 
   const variants = {
     green: "bg-brasil-green hover:bg-brasil-green/90 text-white",

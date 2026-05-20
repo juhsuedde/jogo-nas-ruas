@@ -1,4 +1,5 @@
 import type { Messaging, MessagePayload } from "firebase/messaging";
+import { supabase } from "@/shared/lib/supabase";
 
 const getEnvVar = (key: string): string => {
   const value = import.meta.env[key];
@@ -63,6 +64,20 @@ export async function requestNotificationPermission(): Promise<string | null> {
   } catch (error) {
     console.error("Notification error:", error);
     return null;
+  }
+}
+
+export async function saveFcmToken(token: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  
+  const { error } = await supabase.rpc("upsert_user_fcm_token", {
+    p_user_id: user.id,
+    p_token: token,
+    p_device_type: "web",
+  });
+  if (error) {
+    console.error("Failed to save FCM token:", error);
   }
 }
 

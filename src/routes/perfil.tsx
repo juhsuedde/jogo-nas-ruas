@@ -8,9 +8,12 @@ import {
   LogOut,
   Calendar,
   Users,
+  Loader2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useProfileData } from "@/features/profile/hooks/use-profile-data";
+import { useMyReviewForVenue, useAddReview } from "@/features/profile/hooks/use-reviews";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
@@ -25,93 +28,13 @@ export const Route = createFileRoute("/perfil")({
   component: PerfilPage,
 });
 
-const USER = {
-  name: "Lucas Andrade",
-  handle: "@lucasdrade",
-  initials: "LA",
-  stats: { jogos: 12, bares: 5, confirmados: 38 },
-};
-
-const UPCOMING = [
-  {
-    id: "u1",
-    teams: "Brasil x Argentina",
-    time: "Hoje · 16:00",
-    venue: "Boteco do Zé",
-    flag: "🇧🇷",
-    guests: 4,
-  },
-  {
-    id: "u2",
-    teams: "França x Alemanha",
-    time: "Hoje · 13:00",
-    venue: "Veloso Bar",
-    flag: "🇫🇷",
-    guests: 2,
-  },
-  {
-    id: "u3",
-    teams: "Brasil x México",
-    time: "Quinta · 16:00",
-    venue: "Praça Roosevelt",
-    flag: "🇧🇷",
-    guests: 6,
-  },
-];
-
-const HISTORY = [
-  {
-    id: "h1",
-    teams: "Brasil x Sérvia",
-    date: "12 jun",
-    venue: "Empório Alto dos Pinheiros",
-    score: "2x0",
-  },
-  {
-    id: "h2",
-    teams: "Argentina x Holanda",
-    date: "08 jun",
-    venue: "Bar Brahma",
-    score: "3x2",
-  },
-  {
-    id: "h3",
-    teams: "Portugal x Coreia",
-    date: "05 jun",
-    venue: "Quitanda da Esquina",
-    score: "1x1",
-  },
-];
-
-const MY_VENUES = [
-  {
-    id: "v1",
-    name: "Boteco do Zé",
-    address: "R. Augusta, 1200 · Consolação",
-    verified: true,
-    rsvps: 24,
-  },
-  {
-    id: "v2",
-    name: "Quitanda da Esquina",
-    address: "R. Cardeal Arcoverde, 500 · Pinheiros",
-    verified: true,
-    rsvps: 11,
-  },
-  {
-    id: "v3",
-    name: "Praça Roosevelt — Telão",
-    address: "Praça Roosevelt · República",
-    verified: false,
-    rsvps: 3,
-  },
-];
-
 function PerfilPage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const displayName = user?.email?.split("@")[0] ?? USER.name;
-  const initials = (user?.email?.slice(0, 2) ?? USER.initials).toUpperCase();
+  const { data: profileData, isLoading, error } = useProfileData();
+
+  const displayName = user?.email?.split("@")[0] ?? "Usuário";
+  const initials = (user?.email?.slice(0, 2) ?? "U").toUpperCase();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [cityName, setCityName] = useState<string | null>(null);
 
@@ -126,14 +49,11 @@ function PerfilPage() {
         // Reverse geocoding to get city name (via Edge Function)
         try {
           const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-          const response = await fetch(
-            `${supabaseUrl}/functions/v1/reverse-geocode`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ lat, lng }),
-            }
-          );
+          const response = await fetch(`${supabaseUrl}/functions/v1/reverse-geocode`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lat, lng }),
+          });
           const data = await response.json();
           if (data.city) {
             setCityName(data.city);
@@ -182,7 +102,7 @@ function PerfilPage() {
           </div>
           <div className="min-w-0">
             <p className="font-display text-lg text-brasil-navy truncate">{displayName}</p>
-            <p className="text-sm text-muted-foreground truncate">{user?.email ?? USER.handle}</p>
+            <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
             {(cityName || userLocation) && (
               <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                 <MapPin className="size-3" /> {cityName ?? "Localização obtida"}
@@ -192,48 +112,66 @@ function PerfilPage() {
         </section>
 
         {/* Stats */}
-        <section className="rounded-3xl bg-brasil-navy handmade-border-yellow p-4 grid grid-cols-3 gap-2 text-center text-white">
-          <Stat label="Jogos" value={USER.stats.jogos} />
-          <div className="border-x border-white/15">
-            <Stat label="Bares" value={USER.stats.bares} />
+        {isLoading ? (
+          <div className="rounded-3xl bg-brasil-navy handmade-border-yellow p-8 flex items-center justify-center">
+            <Loader2 className="size-6 text-brasil-yellow animate-spin" />
           </div>
-          <Stat label="Confirmados" value={USER.stats.confirmados} />
-        </section>
+        ) : profileData ? (
+          <section className="rounded-3xl bg-brasil-navy handmade-border-yellow p-4 grid grid-cols-3 gap-2 text-center text-white">
+            <Stat label="Jogos" value={profileData.stats.jogos} />
+            <div className="border-x border-white/15">
+              <Stat label="Bares" value={profileData.stats.bares} />
+            </div>
+            <Stat label="Confirmados" value={profileData.stats.confirmados} />
+          </section>
+        ) : (
+          <div className="rounded-3xl bg-card border-2 border-destructive/40 p-4 text-center text-destructive">
+            Erro ao carregar dados
+          </div>
+        )}
 
         {/* Upcoming */}
         <section>
           <SectionTitle icon={<Calendar className="size-4" />}>PRÓXIMOS JOGOS</SectionTitle>
           <div className="-mx-4 px-4 mt-3 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-            {UPCOMING.map((m) => (
-              <article key={m.id} className="shrink-0 w-64 rounded-2xl bg-card handmade-border p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">{m.flag}</span>
-                  <div className="min-w-0">
-                    <p className="font-bold text-brasil-navy text-sm truncate">{m.teams}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="size-3" /> {m.time}
+            {profileData?.upcoming.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">Nenhum jogo confirmado</p>
+            ) : (
+              profileData?.upcoming.map((m) => (
+                <article
+                  key={m.id}
+                  className="shrink-0 w-64 rounded-2xl bg-card handmade-border p-4"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">{m.flag}</span>
+                    <div className="min-w-0">
+                      <p className="font-bold text-brasil-navy text-sm truncate">{m.teams}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="size-3" /> {m.time}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-background border-2 border-brasil-navy/15 p-2.5 mt-2">
+                    <p className="text-xs font-bold text-brasil-navy truncate">📍 {m.venue}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <Users className="size-3" /> Vai com {m.guests}{" "}
+                      {m.guests === 1 ? "pessoa" : "pessoas"}
                     </p>
                   </div>
-                </div>
-                <div className="rounded-xl bg-background border-2 border-brasil-navy/15 p-2.5 mt-2">
-                  <p className="text-xs font-bold text-brasil-navy truncate">📍 {m.venue}</p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                    <Users className="size-3" /> Vai com {m.guests}{" "}
-                    {m.guests === 1 ? "pessoa" : "pessoas"}
-                  </p>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))
+            )}
           </div>
         </section>
 
-        {/* History */}
         <section>
           <SectionTitle icon={<Clock className="size-4" />}>HISTÓRICO</SectionTitle>
           <div className="mt-3 space-y-2">
-            {HISTORY.map((m) => (
-              <HistoryRow key={m.id} match={m} />
-            ))}
+            {profileData?.history.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">Nenhum histórico ainda</p>
+            ) : (
+              profileData?.history.map((m) => <HistoryRow key={m.id} match={m} />)
+            )}
           </div>
         </section>
 
@@ -241,37 +179,41 @@ function PerfilPage() {
         <section>
           <SectionTitle icon={<MapPin className="size-4" />}>LOCAIS QUE ADICIONEI</SectionTitle>
           <div className="mt-3 space-y-2">
-            {MY_VENUES.map((v) => (
-              <article
-                key={v.id}
-                className="rounded-2xl bg-card handmade-border p-3 flex items-center gap-3"
-              >
-                <div className="size-11 rounded-xl bg-brasil-yellow/40 flex items-center justify-center shrink-0">
-                  <MapPin className="size-5 text-brasil-navy" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-bold text-brasil-navy text-sm truncate">{v.name}</p>
-                    {v.verified ? (
-                      <span
-                        className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brasil-green"
-                        title="Verificado"
-                      >
-                        <CheckCircle2 className="size-3.5" />
-                      </span>
-                    ) : (
-                      <span className="text-[10px] font-bold uppercase bg-brasil-yellow text-brasil-navy px-1.5 py-0.5 rounded-full border border-brasil-navy">
-                        novo
-                      </span>
-                    )}
+            {profileData?.myVenues.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">Nenhum local adicionado</p>
+            ) : (
+              profileData?.myVenues.map((v) => (
+                <article
+                  key={v.id}
+                  className="rounded-2xl bg-card handmade-border p-3 flex items-center gap-3"
+                >
+                  <div className="size-11 rounded-xl bg-brasil-yellow/40 flex items-center justify-center shrink-0">
+                    <MapPin className="size-5 text-brasil-navy" />
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">{v.address}</p>
-                  <p className="text-[11px] text-brasil-navy/70 mt-0.5">
-                    {v.rsvps} pessoas confirmadas
-                  </p>
-                </div>
-              </article>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-bold text-brasil-navy text-sm truncate">{v.name}</p>
+                      {v.verified ? (
+                        <span
+                          className="inline-flex items-center gap-0.5 text-[10px] font-bold text-brasil-green"
+                          title="Verificado"
+                        >
+                          <CheckCircle2 className="size-3.5" />
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold uppercase bg-brasil-yellow text-brasil-navy px-1.5 py-0.5 rounded-full border border-brasil-navy">
+                          novo
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{v.address}</p>
+                    <p className="text-[11px] text-brasil-navy/70 mt-0.5">
+                      {v.rsvps} pessoas confirmadas
+                    </p>
+                  </div>
+                </article>
+              ))
+            )}
           </div>
         </section>
 
@@ -322,9 +264,46 @@ function SectionTitle({ icon, children }: { icon: React.ReactNode; children: Rea
 function HistoryRow({
   match,
 }: {
-  match: { id: string; teams: string; date: string; venue: string; score: string };
+  match: { id: string; teams: string; date: string; venue: string; venueId: string; score: string };
 }) {
-  const [rating, setRating] = useState(0);
+  const { data: review, isLoading } = useMyReviewForVenue(match.venueId);
+  const addReview = useAddReview();
+  const currentRating = review?.rating ?? 0;
+  const [optimisticRating, setOptimisticRating] = useState<number | null>(null);
+
+  const displayRating = optimisticRating ?? currentRating;
+
+  const handleRating = async (rating: number) => {
+    setOptimisticRating(rating);
+    try {
+      await addReview.mutateAsync({ venueId: match.venueId, rating });
+    } catch {
+      setOptimisticRating(null);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <article className="rounded-2xl bg-card handmade-border p-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="font-bold text-brasil-navy text-sm truncate">{match.teams}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {match.date} · {match.venue}
+            </p>
+          </div>
+          <div className="shrink-0 rounded-lg bg-brasil-navy text-brasil-yellow font-display text-sm px-2.5 py-1">
+            {match.score}
+          </div>
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <span className="text-[11px] text-muted-foreground">Avaliar o local:</span>
+          <Loader2 className="size-4 text-brasil-navy/30 animate-spin" />
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="rounded-2xl bg-card handmade-border p-3">
       <div className="flex items-center justify-between gap-2">
@@ -342,10 +321,17 @@ function HistoryRow({
         <span className="text-[11px] text-muted-foreground">Avaliar o local:</span>
         <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} onClick={() => setRating(n)} aria-label={`${n} estrelas`}>
+            <button
+              key={n}
+              onClick={() => handleRating(n)}
+              disabled={addReview.isPending}
+              aria-label={`${n} estrelas`}
+            >
               <Star
                 className={`size-4 transition-colors ${
-                  n <= rating ? "fill-brasil-yellow text-brasil-yellow" : "text-brasil-navy/30"
+                  n <= displayRating
+                    ? "fill-brasil-yellow text-brasil-yellow"
+                    : "text-brasil-navy/30"
                 }`}
               />
             </button>

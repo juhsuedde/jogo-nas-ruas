@@ -11,7 +11,9 @@ interface UseMapLocationReturn {
   centerOnUser: () => void;
 }
 
-export function useMapLocation({ onLocationChange }: UseMapLocationOptions = {}): UseMapLocationReturn {
+export function useMapLocation({
+  onLocationChange,
+}: UseMapLocationOptions = {}): UseMapLocationReturn {
   const [location, setLocation] = useState<[number, number] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -32,7 +34,7 @@ export function useMapLocation({ onLocationChange }: UseMapLocationOptions = {})
       },
       (err) => {
         setError("Não foi possível obter sua localização");
-      }
+      },
     );
 
     // Watch position for continuous updates
@@ -43,7 +45,7 @@ export function useMapLocation({ onLocationChange }: UseMapLocationOptions = {})
         onLocationChange?.(loc);
       },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 30000 }
+      { enableHighAccuracy: true, maximumAge: 30000 },
     );
 
     return () => {
@@ -84,7 +86,7 @@ export function useMapLocation({ onLocationChange }: UseMapLocationOptions = {})
             setError("Erro ao obter localização");
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   }, [onLocationChange]);
 

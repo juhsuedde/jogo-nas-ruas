@@ -14,83 +14,82 @@ Deno.serve(async (req: Request) => {
   try {
     const { lat, lng } = await req.json();
 
-    if (!lat || !lng) {
-      return new Response(
-        JSON.stringify({ error: "lat and lng are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (lat === undefined || lng === undefined) {
+      return new Response(JSON.stringify({ error: "lat and lng are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const response = await fetch(
-      "https://places.googleapis.com/v1/places:searchNearby",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": GOOGLE_API_KEY || "",
-          "X-Goog-FieldMask": "places.formattedAddress,places.addressComponents",
-        },
-        body: JSON.stringify({
-          locationRestriction: {
-            circle: {
-              center: { latitude: lat, longitude: lng },
-              radius: 100,
-            },
-          },
-          maxResultCount: 1,
-        }),
-      }
-    );
+    // Usar a Geocoding API para reverse geocoding
+    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=pt-BR&key=${GOOGLE_API_KEY}`;
+
+    const response = await fetch(geocodeUrl);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Places API error:", errorText);
+      console.error("Geocoding API error:", errorText);
       return new Response(
-        JSON.stringify({ error: "Failed to fetch from Places API", details: errorText }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Failed to fetch from Geocoding API", details: errorText }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const data = await response.json();
-    const place = data.places?.[0];
 
-    if (!place) {
-      return new Response(
-        JSON.stringify({ city: "Localização desconhecida" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (data.status !== "OK" || !data.results?.length) {
+      return new Response(JSON.stringify({ city: "Localização desconhecida" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const cityComponent = place.addressComponents?.find(
-      (c: any) =>
-        c.types?.includes("locality") ||
-        c.types?.includes("administrative_area_level_2")
+    const result = data.results[0];
+    const components = result.address_components;
+
+    // Encontrar cidade (locality) ou sub-região (administrative_area_level_2)
+    const cityComponent = components?.find(
+      (c: any) => c.types?.includes("locality") || c.types?.includes("administrative_area_level_2"),
     );
 
-    const stateComponent = place.addressComponents?.find(
-      (c: any) => c.types?.includes("administrative_area_level_1")
+    // Encontrar estado (administrative_area_level_1)
+    const stateComponent = components?.find((c: any) =>
+      c.types?.includes("administrative_area_level_1"),
     );
 
-    let city = cityComponent?.longText || cityComponent?.shortText || "";
-    const state = stateComponent?.longText || stateComponent?.shortText || "";
+    // Encontrar país
+    const countryComponent = components?.find((c: any) => c.types?.includes("country"));
 
-    // Se não achou cidade, tenta extrair do formattedAddress
-    if (!city && place.formattedAddress) {
-      const parts = place.formattedAddress.split(",");
-      city = parts[parts.length - 1]?.trim() || "Cidade desconhecida";
+    let city = cityComponent?.long_name || "";
+    const state = stateComponent?.short_name || "";
+    const country = countryComponent?.long_name || "";
+
+    // Se não achou cidade, tentar usar sublocality
+    if (!city) {
+      const subLocality = components?.find((c: any) => c.types?.includes("sublocality"));
+      city = subLocality?.long_name || "";
     }
 
-    // Mostra só a cidade (mais limpo para UI)
+    // Se ainda não achou, usar o primeiro resultado do formatted address
+    if (!city && result.formatted_address) {
+      const parts = result.formatted_address.split(",");
+      city = parts[0]?.trim() || "Cidade desconhecida";
+    }
+
+    // Retornar cidade e estado
     const cityDisplay = city || "Cidade desconhecida";
 
     return new Response(
-      JSON.stringify({ city: cityDisplay }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ 
+        city: cityDisplay,
+        state,
+        country,
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

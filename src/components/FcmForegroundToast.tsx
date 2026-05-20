@@ -15,16 +15,28 @@ export function FcmForegroundToast() {
       const n = payload.notification;
       if (!n) return;
       setNotif({ title: n.title ?? "Jogo nas Ruas", body: n.body ?? "" });
-    }).then((u) => {
-      if (cancelled) {
-        try { u?.(); } catch { /* ignore */ }
-      } else {
-        unsub = u;
-      }
-    }).catch(() => { /* ignore */ });
+    })
+      .then((u) => {
+        if (cancelled) {
+          try {
+            u?.();
+          } catch {
+            /* ignore */
+          }
+        } else {
+          unsub = u;
+        }
+      })
+      .catch(() => {
+        /* ignore */
+      });
     return () => {
       cancelled = true;
-      try { unsub?.(); } catch { /* ignore */ }
+      try {
+        unsub?.();
+      } catch {
+        /* ignore */
+      }
     };
   }, []);
 

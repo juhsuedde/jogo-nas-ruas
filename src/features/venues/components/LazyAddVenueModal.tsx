@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 const AddVenueModalLazy = lazy(() =>
   import("@/features/venues/components/AddVenueModal").then((module) => ({
     default: module.AddVenueModal,
-  }))
+  })),
 );
 
 interface LazyAddVenueModalProps {

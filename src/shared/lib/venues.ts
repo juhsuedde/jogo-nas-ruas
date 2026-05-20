@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/shared/lib/supabase";
 import type { Venue } from "@/data/venues";
-import { VENUES as MOCK_VENUES } from "@/data/venues";
 
 type VenueRow = {
   id: string;
@@ -49,10 +48,11 @@ export function useVenues() {
         .select("*, rsvps(count)")
         .order("created_at", { ascending: false });
       if (error) {
-        console.warn("[venues] falling back to mocks:", error.message);
-        return MOCK_VENUES;
+        throw new Error(`Falha ao carregar locais: ${error.message}`);
       }
-      if (!data || data.length === 0) return MOCK_VENUES;
+      if (!data || data.length === 0) {
+        throw new Error("Nenhum local encontrado. O banco de dados está vazio.");
+      }
       return (data as (VenueRow & { rsvps: { count: number }[] })[]).map((r) =>
         rowToVenue(r, r.rsvps?.[0]?.count ?? 0),
       );
@@ -70,8 +70,11 @@ export function useVenue(id: string) {
         .select("*, rsvps(count)")
         .eq("id", id)
         .maybeSingle();
-      if (error || !data) {
-        return MOCK_VENUES.find((v) => v.id === id) ?? null;
+      if (error) {
+        throw new Error(`Falha ao carregar local: ${error.message}`);
+      }
+      if (!data) {
+        throw new Error(`Local com ID ${id} não encontrado.`);
       }
       const row = data as VenueRow & { rsvps: { count: number }[] };
       return rowToVenue(row, row.rsvps?.[0]?.count ?? 0);

@@ -12,7 +12,7 @@ export function Chip({ className, isActive = false, children, ...props }: ChipPr
         isActive
           ? "bg-brasil-navy text-brasil-yellow"
           : "bg-brasil-navy/10 text-brasil-navy/70 hover:bg-brasil-navy/20",
-        className
+        className,
       )}
       {...props}
     >

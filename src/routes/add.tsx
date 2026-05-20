@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { useAddVenue } from "@/shared/lib/venues";
+import { toast } from "sonner";
 
 const AddVenueModalLazy = lazy(() =>
   import("@/features/venues/components/AddVenueModal").then((module) => ({
     default: module.AddVenueModal,
-  }))
+  })),
 );
 
 export const Route = createFileRoute("/add")({
@@ -31,6 +33,50 @@ export const Route = createFileRoute("/add")({
 function AddPage() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
+  const addVenue = useAddVenue();
+
+  const MATCH_MAP: Record<string, { match: string; time: string; isBrazil: boolean }> = {
+    "bra-x-arg": { match: "Brasil x Argentina", time: "16:00", isBrazil: true },
+    "bra-x-uru": { match: "Brasil x Uruguai", time: "16:00", isBrazil: true },
+    "bra-x-col": { match: "Brasil x Colômbia", time: "16:00", isBrazil: true },
+  };
+
+  function extractCity(address: string): string {
+    const parts = address.split(",");
+    return parts[parts.length - 1]?.trim() || "São Paulo";
+  }
+
+  async function handleSubmit(venue: {
+    name: string;
+    address: { title: string; subtitle: string; lat: number; lng: number };
+    perks: string[];
+    matches: string[];
+  }) {
+    try {
+      const firstMatch = venue.matches[0] ? MATCH_MAP[venue.matches[0]] : null;
+      const promo = venue.perks.includes("promo") ? "Promoção disponível" : undefined;
+
+      await addVenue.mutateAsync({
+        name: venue.name,
+        address: `${venue.address.title} - ${venue.address.subtitle}`,
+        lat: venue.address.lat,
+        lng: venue.address.lng,
+        city: extractCity(venue.address.subtitle),
+        match: firstMatch?.match || "",
+        matchTime: firstMatch?.time || "",
+        isBrazilMatch: firstMatch?.isBrazil || false,
+        bigScreen: venue.perks.includes("big-screen"),
+        promo,
+      });
+
+      toast.success("Local cadastrado com sucesso!");
+      setOpen(false);
+      navigate({ to: "/" });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Erro ao cadastrar local";
+      toast.error(message);
+    }
+  }
 
   return (
     <Suspense
@@ -46,11 +92,7 @@ function AddPage() {
           setOpen(isOpen);
           if (!isOpen) navigate({ to: "/" });
         }}
-        onSubmit={(venue) => {
-          console.log("Add venue:", venue);
-          setOpen(false);
-          navigate({ to: "/" });
-        }}
+        onSubmit={handleSubmit}
       />
     </Suspense>
   );

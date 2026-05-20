@@ -22,10 +22,10 @@ Deno.serve(async (req: Request) => {
     // SEARCH ACTION
     if (action === "search") {
       if (!query) {
-        return new Response(
-          JSON.stringify({ error: "Query is required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "Query is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       const searchBody: Record<string, unknown> = {
@@ -48,54 +48,58 @@ Deno.serve(async (req: Request) => {
         };
       }
 
-      const response = await fetch(
-        "https://places.googleapis.com/v1/places:searchText",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Goog-Api-Key": GOOGLE_API_KEY || "",
-            "X-Goog-FieldMask":
-              "places.id,places.displayName,places.formattedAddress,places.location,places.types",
-          },
-          body: JSON.stringify(searchBody),
-        }
-      );
+      const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": GOOGLE_API_KEY || "",
+          "X-Goog-FieldMask":
+            "places.id,places.displayName,places.formattedAddress,places.location,places.types",
+        },
+        body: JSON.stringify(searchBody),
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Google Places API error:", errorText);
         return new Response(
           JSON.stringify({ error: "Failed to fetch from Google Places", details: errorText }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
       const data = await response.json();
 
       const places =
-        data.places?.map((place: { id: string; displayName?: { text: string }; formattedAddress?: string; location?: { latitude: number; longitude: number }; types?: string[] }) => ({
-          place_id: place.id,
-          name: place.displayName?.text || "",
-          formatted_address: place.formattedAddress || "",
-          lat: place.location?.latitude || 0,
-          lng: place.location?.longitude || 0,
-          types: place.types || [],
-        })) || [];
+        data.places?.map(
+          (place: {
+            id: string;
+            displayName?: { text: string };
+            formattedAddress?: string;
+            location?: { latitude: number; longitude: number };
+            types?: string[];
+          }) => ({
+            place_id: place.id,
+            name: place.displayName?.text || "",
+            formatted_address: place.formattedAddress || "",
+            lat: place.location?.latitude || 0,
+            lng: place.location?.longitude || 0,
+            types: place.types || [],
+          }),
+        ) || [];
 
-      return new Response(
-        JSON.stringify({ places }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ places }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // DETAILS ACTION
     if (action === "details") {
       if (!placeId) {
-        return new Response(
-          JSON.stringify({ error: "placeId is required" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ error: "placeId is required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       const fieldMask = [
@@ -109,22 +113,19 @@ Deno.serve(async (req: Request) => {
         "types",
       ].join(",");
 
-      const response = await fetch(
-        `https://places.googleapis.com/v1/places/${placeId}`,
-        {
-          headers: {
-            "X-Goog-Api-Key": GOOGLE_API_KEY || "",
-            "X-Goog-FieldMask": fieldMask,
-          },
-        }
-      );
+      const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+        headers: {
+          "X-Goog-Api-Key": GOOGLE_API_KEY || "",
+          "X-Goog-FieldMask": fieldMask,
+        },
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Google Places Details API error:", errorText);
         return new Response(
           JSON.stringify({ error: "Failed to fetch place details", details: errorText }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
@@ -147,22 +148,20 @@ Deno.serve(async (req: Request) => {
         types: result.types || [],
       };
 
-      return new Response(
-        JSON.stringify({ place }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ place }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    return new Response(
-      JSON.stringify({ error: "Invalid action. Use 'search' or 'details'." }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-
+    return new Response(JSON.stringify({ error: "Invalid action. Use 'search' or 'details'." }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Edge function error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });

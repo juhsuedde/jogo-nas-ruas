@@ -34,15 +34,24 @@ export function LoadingState({
     return (
       <div className={cn("flex items-center justify-center gap-1.5", className)}>
         <span
-          className={cn("rounded-full bg-brasil-yellow animate-bounce", sizes[size === "sm" ? "sm" : "md"])}
+          className={cn(
+            "rounded-full bg-brasil-yellow animate-bounce",
+            sizes[size === "sm" ? "sm" : "md"],
+          )}
           style={{ animationDelay: "0ms" }}
         />
         <span
-          className={cn("rounded-full bg-brasil-yellow animate-bounce", sizes[size === "sm" ? "sm" : "md"])}
+          className={cn(
+            "rounded-full bg-brasil-yellow animate-bounce",
+            sizes[size === "sm" ? "sm" : "md"],
+          )}
           style={{ animationDelay: "150ms" }}
         />
         <span
-          className={cn("rounded-full bg-brasil-yellow animate-bounce", sizes[size === "sm" ? "sm" : "md"])}
+          className={cn(
+            "rounded-full bg-brasil-yellow animate-bounce",
+            sizes[size === "sm" ? "sm" : "md"],
+          )}
           style={{ animationDelay: "300ms" }}
         />
       </div>

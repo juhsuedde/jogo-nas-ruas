@@ -29,10 +29,7 @@ export function BrasilCard({
   };
 
   return (
-    <div
-      className={cn(baseStyles, variants[variant], paddings[padding], className)}
-      {...props}
-    >
+    <div className={cn(baseStyles, variants[variant], paddings[padding], className)} {...props}>
       {children}
     </div>
   );

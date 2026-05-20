@@ -7,6 +7,7 @@ import { Checkbox } from "@/shared/components/ui/checkbox";
 import { Search, MapPin, Star, Loader2, ChevronLeft, Tv, Tag, Car } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/shared/lib/supabase";
+import { useMatches } from "@/shared/lib/matches";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface PlaceSuggestion {
@@ -38,11 +39,7 @@ const PERKS = [
   { id: "parking", label: "Tem Estacionamento", icon: Car },
 ];
 
-const UPCOMING_MATCHES = [
-  { id: "bra-x-arg", label: "Brasil x Argentina" },
-  { id: "bra-x-uru", label: "Brasil x Uruguai" },
-  { id: "bra-x-col", label: "Brasil x Colômbia" },
-];
+
 
 // ─── Component ───────────────────────────────────────────────────────────────
 interface AddVenueModalProps {
@@ -74,6 +71,9 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   const [name, setName] = useState("");
   const [perks, setPerks] = useState<Set<string>>(new Set());
   const [matches, setMatches] = useState<Set<string>>(new Set());
+
+  // Fetch matches from database
+  const { data: dbMatches = [], isLoading: matchesLoading } = useMatches();
 
   // ─── Reset when modal opens ──────────────────────────────────────────────────
   useEffect(() => {
@@ -125,7 +125,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
           placeId: p.place_id,
           title: p.name,
           subtitle: p.formatted_address,
-        }))
+        })),
       );
     } catch (e) {
       setSearchError("Não foi possível buscar locais. Tente novamente.");
@@ -435,23 +435,43 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
           <div className="px-6 pb-6 space-y-5">
             <p className="text-sm text-brasil-navy/70">Escolha um ou mais. Dá pra editar depois.</p>
             <div className="space-y-2">
-              {UPCOMING_MATCHES.map((m) => {
-                const active = matches.has(m.id);
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => toggleMatch(m.id)}
-                    className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
-                      active
-                        ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
-                        : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
-                    }`}
-                  >
-                    <span className="text-sm font-medium">{m.label}</span>
-                    <Checkbox checked={active} />
-                  </button>
-                );
-              })}
+              {matchesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="size-6 text-brasil-navy animate-spin" />
+                </div>
+              ) : dbMatches.length === 0 ? (
+                <p className="text-sm text-brasil-navy/50 text-center py-4">
+                  Nenhum jogo disponível
+                </p>
+              ) : (
+                dbMatches.map((m) => {
+                  const active = matches.has(m.id);
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => toggleMatch(m.id)}
+                      className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
+                        active
+                          ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
+                          : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">
+                        {m.match_name}
+                        <span className="text-xs text-brasil-navy/50 ml-2">
+                          {new Date(m.match_date).toLocaleDateString("pt-BR", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </span>
+                      <Checkbox checked={active} />
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
         )}

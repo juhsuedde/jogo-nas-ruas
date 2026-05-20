@@ -11,11 +11,12 @@ export interface GooglePlace {
   rating?: number;
   photoUrl?: string;
   types: string[];
+  isLocalVenue?: boolean;
 }
 
 export async function searchPlaces(
   query: string,
-  userLocation?: [number, number] | null
+  userLocation?: [number, number] | null,
 ): Promise<GooglePlace[]> {
   if (!query || query.length < 2) return [];
 

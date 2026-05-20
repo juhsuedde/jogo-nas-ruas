@@ -1,6 +1,6 @@
 import { VenueCard } from "@/features/venues/components/VenueCard";
 import { VenueCardSkeleton } from "@/features/venues/components/VenueCardSkeleton";
-import type { Venue } from "@/features/venues/hooks/useVenues";
+import type { Venue } from "@/data/venues";
 
 interface VenueListProps {
   venues: Venue[];
@@ -34,12 +34,7 @@ export function VenueList({ venues, loading, activeId, onSelect }: VenueListProp
   return (
     <div className="space-y-3">
       {venues.map((v) => (
-        <VenueCard
-          key={v.id}
-          venue={v}
-          active={v.id === activeId}
-          onClick={() => onSelect(v.id)}
-        />
+        <VenueCard key={v.id} venue={v} active={v.id === activeId} onClick={() => onSelect(v.id)} />
       ))}
     </div>
   );
