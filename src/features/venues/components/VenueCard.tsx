@@ -1,12 +1,23 @@
-import type { Venue } from "@/data/venues";
 import { Users, Tv, Sparkles, MapPin } from "lucide-react";
+
+export interface VenueCardData {
+  name: string;
+  address: string;
+  isBrazilMatch?: boolean;
+  bigScreen?: boolean;
+  match?: string;
+  matchTime?: string;
+  promo?: string;
+  rsvps?: number;
+  unverified?: boolean;
+}
 
 export function VenueCard({
   venue,
   active,
   onClick,
 }: {
-  venue: Venue;
+  venue: VenueCardData;
   active: boolean;
   onClick: () => void;
 }) {
