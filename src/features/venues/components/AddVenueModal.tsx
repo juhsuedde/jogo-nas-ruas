@@ -113,8 +113,25 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     setIsSearching(true);
     setSearchError(null);
     try {
+      let lat: number | undefined;
+      let lng: number | undefined;
+
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
+          });
+        });
+        lat = position.coords.latitude;
+        lng = position.coords.longitude;
+      } catch {
+        // Location unavailable, search without coords
+      }
+
       const { data, error } = await supabase.functions.invoke("google-places", {
-        body: { action: "search", query: q },
+        body: { action: "search", query: q, lat, lng, radius: 8000 },
       });
       if (error) throw error;
       const places = data?.places || [];
@@ -125,7 +142,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
           subtitle: p.formatted_address,
         })),
       );
-    } catch (e) {
+    } catch {
       setSearchError("Não foi possível buscar locais. Tente novamente.");
       setPlaceSuggestions([]);
     } finally {
