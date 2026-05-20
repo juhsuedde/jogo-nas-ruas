@@ -1,6 +1,6 @@
 import { VenueCard } from "@/features/venues/components/VenueCard";
 import { VenueCardSkeleton } from "@/features/venues/components/VenueCardSkeleton";
-import type { Venue } from "@/data/venues";
+import type { Venue } from "@/features/venues/hooks/useVenues";
 
 interface VenueListProps {
   venues: Venue[];
