@@ -46,7 +46,12 @@ async function fetchProfileData(): Promise<ProfileData> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    throw new Error("Usuário não autenticado");
+    return {
+      stats: { jogos: 0, bares: 0, confirmados: 0 },
+      upcoming: [],
+      history: [],
+      myVenues: [],
+    };
   }
 
   const [rsvpsResult, venuesResult, matchesResult] = await Promise.all([

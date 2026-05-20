@@ -35,9 +35,6 @@ function PerfilPage() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: profileData, isLoading, error } = useProfileData();
-
-  const displayName = user?.email?.split("@")[0] ?? "Usuário";
-  const initials = (user?.email?.slice(0, 2) ?? "U").toUpperCase();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [cityName, setCityName] = useState<string | null>(null);
 
@@ -49,7 +46,6 @@ function PerfilPage() {
         const lng = position.coords.longitude;
         setUserLocation({ lat, lng });
 
-        // Reverse geocoding to get city name (via Edge Function)
         try {
           const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
           const response = await fetch(`${supabaseUrl}/functions/v1/reverse-geocode`, {
@@ -61,12 +57,12 @@ function PerfilPage() {
           if (data.city) {
             setCityName(data.city);
           }
-        } catch (e) {
+        } catch {
           // Ignore reverse geocoding errors
         }
       },
       () => {
-        // Location denied/unavailable - don't show anything
+        // Location denied/unavailable
       },
     );
   }, []);
@@ -75,6 +71,43 @@ function PerfilPage() {
     await signOut();
     navigate({ to: "/login" });
   };
+
+  if (!user) {
+    return (
+      <main className="absolute inset-0 overflow-y-auto pb-24">
+        <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b-2 border-brasil-navy/10">
+          <div className="max-w-md mx-auto flex items-center justify-between p-4">
+            <Link
+              to="/"
+              className="size-10 rounded-full bg-card handmade-border flex items-center justify-center"
+              aria-label="Voltar"
+            >
+              <ArrowLeft className="size-4 text-brasil-navy" />
+            </Link>
+            <h1 className="font-display text-base text-brasil-navy tracking-wider">MEU PERFIL</h1>
+            <div className="size-10" />
+          </div>
+        </div>
+        <div className="max-w-md mx-auto px-4 pt-10 text-center space-y-6">
+          <div className="text-6xl">👤</div>
+          <h2 className="font-display text-xl text-brasil-navy">Faça login para ver seu perfil</h2>
+          <p className="text-muted-foreground">
+            Veja seus locais cadastrados, confirmações e histórico de jogos.
+          </p>
+          <Link
+            to="/login"
+            className="inline-block w-full rounded-2xl bg-brasil-green text-white font-bold py-3 text-center"
+          >
+            Entrar
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  const displayName = user?.email?.split("@")[0] ?? "Usuário";
+  const initials = (user?.email?.slice(0, 2) ?? "U").toUpperCase();
+
   return (
     <main className="absolute inset-0 overflow-y-auto pb-24">
       {/* Header */}
@@ -287,6 +320,7 @@ function HistoryRow({
     },
     staleTime: 30_000,
   });
+
   const addReview = useAddReview();
   const currentRating = review?.rating ?? 0;
   const [optimisticRating, setOptimisticRating] = useState<number | null>(null);
