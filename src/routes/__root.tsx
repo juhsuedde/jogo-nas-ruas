@@ -1,4 +1,4 @@
-import { Outlet, createFileRoute, Link, useLocation } from "@tanstack/react-router";
+import { Outlet, createRootRoute, Link, useLocation } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Map, User, Plus } from "lucide-react";
 import { Toaster as SonnerToaster } from "sonner";
@@ -13,7 +13,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export const Route = createFileRoute("/__root")({
+export const Route = createRootRoute({
   component: RootLayout,
 });
 
