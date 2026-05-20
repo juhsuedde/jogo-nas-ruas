@@ -201,7 +201,7 @@ function MapaPage() {
     return allVenues.filter((v) => {
       if (filters.has("brazil") && !v.isBrazilMatch) return false;
       if (filters.has("screen") && !v.bigScreen) return false;
-      if (query && !\`\${v.name} \${v.address} \${v.match}\`.toLowerCase().includes(query.toLowerCase()))
+      if (query && !`${v.name} ${v.address} ${v.match}`.toLowerCase().includes(query.toLowerCase()))
         return false;
       if (userLocation) {
         const distance = calculateDistance(userLocation[0], userLocation[1], v.lat, v.lng);
