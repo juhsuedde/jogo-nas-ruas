@@ -31,18 +31,21 @@ export function useMapLocation({
     const handlePosition = (position: GeolocationPosition) => {
       const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
       setLocation(loc);
+      setError(null);
       if (!hasInitiallyLocatedRef.current) {
         hasInitiallyLocatedRef.current = true;
         onLocationChangeRef.current?.(loc);
       }
     };
 
-    navigator.geolocation.getCurrentPosition(handlePosition, () => {}, {
+    const handleError = () => {};
+
+    navigator.geolocation.getCurrentPosition(handlePosition, handleError, {
       enableHighAccuracy: true,
       maximumAge: 60000,
     });
 
-    watchIdRef.current = navigator.geolocation.watchPosition(handlePosition, () => {}, {
+    watchIdRef.current = navigator.geolocation.watchPosition(handlePosition, handleError, {
       enableHighAccuracy: true,
       maximumAge: 30000,
     });
@@ -61,6 +64,7 @@ export function useMapLocation({
     }
 
     setIsLocating(true);
+    setError(null);
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
@@ -73,19 +77,19 @@ export function useMapLocation({
         setIsLocating(false);
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            setError("Permita o acesso à localização");
+            setError("Permita o acesso à localização nas configurações do navegador.");
             break;
           case err.POSITION_UNAVAILABLE:
-            setError("GPS indisponível");
+            setError("GPS indisponível. Verifique sua conexão.");
             break;
           case err.TIMEOUT:
             setError("Tempo esgotado. Tente novamente.");
             break;
           default:
-            setError("Erro ao obter localização");
+            setError("Não foi possível obter sua localização.");
         }
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
   }, []);
 

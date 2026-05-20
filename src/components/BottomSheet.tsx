@@ -70,7 +70,7 @@ export function BottomSheet({
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6">{children}</div>
 
-      {locationButton && <div className="absolute -top-14 right-4">{locationButton}</div>}
+      {locationButton && <div className="absolute -top-16 right-4">{locationButton}</div>}
     </div>
   );
 }
