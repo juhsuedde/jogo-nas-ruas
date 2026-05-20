@@ -5,21 +5,15 @@ export function VenueDetail({
   venue,
   onBack,
   going,
-  guests,
   onToggleGoing,
-  onChangeGuests,
   onShare,
 }: {
   venue: Venue;
   onBack: () => void;
   going: boolean;
-  guests: number;
   onToggleGoing: () => void;
-  onChangeGuests: (g: number) => void;
   onShare?: () => void;
 }) {
-  const count = venue.rsvps + (going ? guests : 0);
-
   return (
     <div>
       <button
@@ -58,39 +52,18 @@ export function VenueDetail({
         <div className="flex items-center gap-2">
           <Users className="size-5 text-brasil-green" />
           <div>
-            <div className="font-display text-2xl text-brasil-navy leading-none">{count}</div>
+            <div className="font-display text-2xl text-brasil-navy leading-none">{venue.rsvps}</div>
             <div className="text-xs text-muted-foreground">torcedores confirmados</div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {going && (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => onChangeGuests(Math.max(1, guests - 1))}
-                aria-label="Diminuir número de acompanhantes"
-                className="size-7 rounded-full bg-muted font-bold"
-              >
-                −
-              </button>
-              <span className="font-display text-base w-5 text-center">{guests}</span>
-              <button
-                onClick={() => onChangeGuests(guests + 1)}
-                aria-label="Aumentar número de acompanhantes"
-                className="size-7 rounded-full bg-muted font-bold"
-              >
-                +
-              </button>
-            </div>
-          )}
-          <button
-            onClick={onToggleGoing}
-            className={`rounded-xl px-4 py-2 font-display text-sm border-2 border-brasil-navy ${
-              going ? "bg-brasil-yellow text-brasil-navy" : "bg-brasil-green text-white"
-            }`}
-          >
-            {going ? "Tô indo ✓" : "Tô indo!"}
-          </button>
-        </div>
+        <button
+          onClick={onToggleGoing}
+          className={`rounded-xl px-4 py-2 font-display text-sm border-2 border-brasil-navy ${
+            going ? "bg-brasil-yellow text-brasil-navy" : "bg-brasil-green text-white"
+          }`}
+        >
+          {going ? "Tô Indo ✓" : "Tô Indo!"}
+        </button>
       </div>
 
       {venue.promo && (

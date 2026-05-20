@@ -139,9 +139,12 @@ export function useToggleRsvp(venueId: string) {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Faça login para confirmar presença.");
       if (going) {
-const { error } = await supabase.from("rsvps").upsert(
-          { venue_id: venueId, user_id: u.user.id, guest_count: guests, match_id: matchId ?? null },
-        );
+        const { error } = await supabase.from("rsvps").upsert({
+          venue_id: venueId,
+          user_id: u.user.id,
+          guest_count: guests,
+          match_id: matchId ?? null,
+        });
         if (error) throw error;
       } else {
         const { error } = await supabase

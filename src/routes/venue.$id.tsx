@@ -86,7 +86,6 @@ function VenuePage() {
   const toggleRsvp = useToggleRsvp(id);
 
   const [going, setGoing] = useState(false);
-  const [guests, setGuests] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
   const shareUrl =
@@ -96,7 +95,7 @@ function VenuePage() {
 
   const handleShare = useCallback(() => {
     if (!venue) return;
-    const title = `Vou assistir ${venue.match} no ${venue.name}!`;
+    const title = `Vou assistir aos jogos da Copa 2026 no ${venue.name}!`;
     const text = "Encontrei esse lugar no Jogo nas Ruas. Bora?";
     const url = shareUrl;
 
@@ -113,7 +112,6 @@ function VenuePage() {
   useEffect(() => {
     if (myRsvp) {
       setGoing(true);
-      setGuests(myRsvp.guests ?? 1);
     } else {
       setGoing(false);
     }
@@ -135,7 +133,7 @@ function VenuePage() {
     );
   }
 
-  const handleToggle = async (next: boolean, nextGuests: number) => {
+  const handleToggle = async (next: boolean) => {
     if (!user) {
       navigate({ to: "/login" });
       return;
@@ -143,9 +141,8 @@ function VenuePage() {
     setError(null);
     const wasGoing = going;
     setGoing(next);
-    setGuests(nextGuests);
     try {
-      await toggleRsvp.mutateAsync({ going: next, guests: nextGuests });
+      await toggleRsvp.mutateAsync({ going: next, guests: 1 });
       if (next && !wasGoing) {
         // Register for push reminders on first opt-in
         const { requestNotificationPermission } = await import("@/shared/lib/firebase");
@@ -162,7 +159,7 @@ function VenuePage() {
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : "Erro ao confirmar.";
       setError(message);
-      setGoing(!next);
+      setGoing(wasGoing);
     }
   };
 
@@ -172,10 +169,8 @@ function VenuePage() {
         <VenueDetail
           venue={venue}
           going={going}
-          guests={guests}
           onBack={() => navigate({ to: "/mapa" })}
-          onToggleGoing={() => handleToggle(!going, guests)}
-          onChangeGuests={(g) => handleToggle(true, Math.max(1, g))}
+          onToggleGoing={() => handleToggle(!going)}
           onShare={handleShare}
         />
         {!user && (
