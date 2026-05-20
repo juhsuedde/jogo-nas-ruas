@@ -25,6 +25,7 @@ export function PwaRegister() {
     }
 
     navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register("/firebase-messaging-sw.js").catch(() => {});
   }, []);
   return null;
 }
