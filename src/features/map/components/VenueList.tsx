@@ -37,7 +37,7 @@ export function VenueList({ venues, loading, activeId, onSelect }: VenueListProp
         <VenueCard
           key={v.id}
           venue={v}
-          isActive={v.id === activeId}
+          active={v.id === activeId}
           onClick={() => onSelect(v.id)}
         />
       ))}
