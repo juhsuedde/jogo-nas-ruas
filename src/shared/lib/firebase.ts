@@ -68,9 +68,11 @@ export async function requestNotificationPermission(): Promise<string | null> {
 }
 
 export async function saveFcmToken(token: string) {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return;
-  
+
   const { error } = await supabase.rpc("upsert_user_fcm_token", {
     p_user_id: user.id,
     p_token: token,

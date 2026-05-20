@@ -154,7 +154,7 @@ async function fetchProfileData(): Promise<ProfileData> {
     );
   });
 
-const myVenues: ProfileVenue[] = venuesCreated.map((v) => ({
+  const myVenues: ProfileVenue[] = venuesCreated.map((v) => ({
     id: v.id,
     name: v.name,
     address: v.address,

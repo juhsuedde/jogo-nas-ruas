@@ -10,10 +10,13 @@ export function LocationButton({ onClick, isLocating }: LocationButtonProps) {
     <button
       onClick={onClick}
       disabled={isLocating}
-      className="w-12 h-12 bg-white rounded-full shadow-lg border-2 border-brasil-navy flex items-center justify-center active:scale-95 transition-transform"
+      className="w-14 h-14 bg-brasil-cream rounded-full shadow-xl border-[3px] border-brasil-navy flex items-center justify-center active:scale-90 transition-all hover:bg-brasil-yellow hover:shadow-2xl group"
       aria-label="Minha localização"
     >
-      <Navigation className={`w-5 h-5 text-brasil-navy ${isLocating ? "animate-spin" : ""}`} />
+      <Navigation
+        className={`w-6 h-6 text-brasil-navy transition-colors ${isLocating ? "animate-spin" : ""}`}
+        strokeWidth={2.5}
+      />
     </button>
   );
 }

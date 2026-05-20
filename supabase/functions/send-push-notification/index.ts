@@ -31,7 +31,7 @@ async function getAccessToken(): Promise<string> {
 
   const encoder = new TextEncoder();
   const keyData = encoder.encode(`${jwtHeader}.${jwtPayload}`);
-  
+
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
     encoder.encode(serviceAccount.private_key),
@@ -40,11 +40,7 @@ async function getAccessToken(): Promise<string> {
     ["sign"],
   );
 
-  const signature = await crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    cryptoKey,
-    keyData,
-  );
+  const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", cryptoKey, keyData);
 
   const jwt = `${jwtHeader}.${jwtPayload}.${btoa(String.fromCharCode(...new Uint8Array(signature)))}`;
 
@@ -70,7 +66,7 @@ async function sendPushNotification(
   venueId: string,
 ) {
   const projectId = FIREBASE_PROJECT_ID || "jogo-nas-ruas";
-  
+
   const response = await fetch(
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
     {
@@ -132,10 +128,9 @@ serve(async (req) => {
 
     if (error) throw error;
     if (!upcomingRsvps || upcomingRsvps.length === 0) {
-      return new Response(
-        JSON.stringify({ message: "Nenhuma notificação para enviar", sent: 0 }),
-        { headers },
-      );
+      return new Response(JSON.stringify({ message: "Nenhuma notificação para enviar", sent: 0 }), {
+        headers,
+      });
     }
 
     const accessToken = await getAccessToken();
@@ -184,9 +179,6 @@ serve(async (req) => {
       { headers },
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers },
-    );
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers });
   }
 });

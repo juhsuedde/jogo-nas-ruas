@@ -1,9 +1,14 @@
 import { useState, useRef, type ReactNode } from "react";
 
-export function BottomSheet({ children }: { children: ReactNode }) {
-  // Snap heights as vh: peek, half, full
-  const snaps = [22, 55, 88];
-  const [snap, setSnap] = useState(1);
+interface BottomSheetProps {
+  children: ReactNode;
+  minimized?: boolean;
+  onToggle?: () => void;
+}
+
+export function BottomSheet({ children, minimized = false, onToggle }: BottomSheetProps) {
+  const snaps = [15, 45, 75];
+  const [snap, setSnap] = useState(minimized ? 0 : 1);
   const [dragOffset, setDragOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const startY = useRef<number | null>(null);
@@ -31,7 +36,7 @@ export function BottomSheet({ children }: { children: ReactNode }) {
     startY.current = null;
   };
 
-  const heightVh = snaps[snap];
+  const heightVh = minimized ? snaps[0] : snaps[snap];
 
   return (
     <div
@@ -52,7 +57,8 @@ export function BottomSheet({ children }: { children: ReactNode }) {
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="pt-3 pb-2 flex justify-center cursor-grab active:cursor-grabbing"
+        onClick={onToggle}
+        className="pt-3 pb-2 flex justify-center cursor-grab active:cursor-grabbing select-none"
       >
         <div className="h-1.5 w-12 rounded-full bg-brasil-navy/30" />
       </div>

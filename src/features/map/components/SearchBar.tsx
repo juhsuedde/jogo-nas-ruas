@@ -59,7 +59,9 @@ export function SearchBar({
               onClick={() => onSelectPlace(place)}
               className="w-full flex items-center gap-3 p-3 text-left text-white hover:bg-brasil-yellow/20 transition-colors border-b border-white/10 last:border-b-0"
             >
-              <MapPin className={`size-4 shrink-0 ${place.isLocalVenue ? "text-brasil-green" : "text-brasil-yellow"}`} />
+              <MapPin
+                className={`size-4 shrink-0 ${place.isLocalVenue ? "text-brasil-green" : "text-brasil-yellow"}`}
+              />
               <div className="min-w-0">
                 <p className="font-bold text-sm truncate">{place.name}</p>
                 <p className="text-xs text-white/60 truncate">

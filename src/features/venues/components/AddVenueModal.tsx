@@ -39,8 +39,6 @@ const PERKS = [
   { id: "parking", label: "Tem Estacionamento", icon: Car },
 ];
 
-
-
 // ─── Component ───────────────────────────────────────────────────────────────
 interface AddVenueModalProps {
   open: boolean;

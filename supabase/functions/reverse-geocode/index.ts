@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
     const cityDisplay = city || "Cidade desconhecida";
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         city: cityDisplay,
         state,
         country,

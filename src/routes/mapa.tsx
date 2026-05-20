@@ -3,18 +3,22 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Search, X, Loader2, Navigation, MapPin } from "lucide-react";
 
-const MapView = lazy(() => import("@/features/map/components/MapView").then(m => ({ default: m.MapView })));
+const MapView = lazy(() =>
+  import("@/features/map/components/MapView").then((m) => ({ default: m.MapView })),
+);
 
 import { FilterBar } from "@/features/map/components/FilterBar";
 import { RadiusSelector } from "@/features/map/components/RadiusSelector";
 import { VenueList } from "@/features/map/components/VenueList";
 import { BottomSheet } from "@/components/BottomSheet";
 import { LocationButton } from "@/features/map/components/LocationButton";
-import { AddVenueButton } from "@/features/map/components/AddVenueButton";
+
 import { useMapLocation } from "@/features/map/hooks/useMapLocation";
 import { useVenues, useAddVenue } from "@/shared/lib/venues";
+import { useMatches } from "@/shared/lib/matches";
 import { searchPlaces, getPlaceDetails } from "@/shared/lib/google-places";
 import { calculateDistance, getZoomForRadius } from "@/shared/lib/utils";
+import { toast } from "sonner";
 import type { GooglePlace } from "@/shared/lib/google-places";
 import { ClientOnly } from "@/shared/components/ClientOnly";
 
@@ -52,32 +56,59 @@ function MapaPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isBottomSheetMinimized, setIsBottomSheetMinimized] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const flyToFnRef = useRef<((lat: number, lng: number, zoom?: number) => void) | null>(null);
   const { data: allVenues = [], isLoading: loading } = useVenues();
   const queryClient = useQueryClient();
 
-  const { location: userLocation, error: locationError, isLocating, centerOnUser } = useMapLocation({
+  const {
+    location: userLocation,
+    error: locationError,
+    isLocating,
+    centerOnUser,
+  } = useMapLocation({
     onLocationChange: (loc) => flyToFnRef.current?.(loc[0], loc[1], 15),
   });
 
   const addVenue = useAddVenue();
+  const { data: dbMatches = [] } = useMatches();
 
   const handleAddVenue = async (venue: {
     name: string;
-    address: any;
+    address: { title: string; subtitle: string; lat: number; lng: number; placeId: string };
     perks: string[];
     matches: string[];
     googlePlaceId: string;
   }) => {
     try {
-      await addVenue.mutateAsync(venue);
+      const firstMatchId = venue.matches[0] ?? null;
+      const matchData = firstMatchId ? dbMatches.find((m) => m.id === firstMatchId) : null;
+
+      await addVenue.mutateAsync({
+        name: venue.name.trim(),
+        address: venue.address.title,
+        lat: venue.address.lat,
+        lng: venue.address.lng,
+        city: venue.address.subtitle?.split(",")[0]?.trim() ?? "",
+        match: matchData?.match_name ?? "",
+        matchTime: matchData?.match_date ?? "",
+        isBrazilMatch: matchData?.is_brazil ?? false,
+        bigScreen: venue.perks.includes("big-screen"),
+        promo: venue.perks.includes("promo") ? "Tem promoção" : undefined,
+      });
+
       setShowAddModal(false);
+      toast.success("Local cadastrado com sucesso!");
+
       if (venue.address.lat && venue.address.lng) {
         flyToFnRef.current?.(venue.address.lat, venue.address.lng, 16);
       }
+
+      queryClient.invalidateQueries({ queryKey: ["venues"] });
     } catch (err) {
       console.error("Failed to create venue:", err);
+      toast.error(err instanceof Error ? err.message : "Erro ao cadastrar local. Tente novamente.");
     }
   };
 
@@ -116,23 +147,27 @@ function MapaPage() {
       setIsSearching(true);
       try {
         const lowerQuery = query.toLowerCase();
-        
+
         const localMatches = allVenues
-          .filter(v => 
-            v.name.toLowerCase().includes(lowerQuery) ||
-            v.address.toLowerCase().includes(lowerQuery) ||
-            v.city.toLowerCase().includes(lowerQuery)
+          .filter(
+            (v) =>
+              v.name.toLowerCase().includes(lowerQuery) ||
+              v.address.toLowerCase().includes(lowerQuery) ||
+              v.city.toLowerCase().includes(lowerQuery),
           )
           .slice(0, 5)
-          .map(v => ({
-            place_id: v.id,
-            name: v.name,
-            formatted_address: v.address,
-            lat: v.lat,
-            lng: v.lng,
-            types: ["establishment"],
-            isLocalVenue: true,
-          } as GooglePlace & { isLocalVenue: true }));
+          .map(
+            (v) =>
+              ({
+                place_id: v.id,
+                name: v.name,
+                formatted_address: v.address,
+                lat: v.lat,
+                lng: v.lng,
+                types: ["establishment"],
+                isLocalVenue: true,
+              }) as GooglePlace & { isLocalVenue: true },
+          );
 
         if (localMatches.length > 0) {
           setSearchResults(localMatches);
@@ -184,16 +219,18 @@ function MapaPage() {
   return (
     <div className="h-full flex flex-col relative">
       {/* Map */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative" onClick={() => setIsBottomSheetMinimized(true)}>
         <ClientOnly>
-          <Suspense fallback={
-            <div className="h-full flex items-center justify-center bg-brasil-cream">
-              <div className="text-center">
-                <Loader2 className="size-8 text-brasil-navy animate-spin mx-auto mb-2" />
-                <p className="text-sm text-brasil-navy/60">carregando mapa...</p>
+          <Suspense
+            fallback={
+              <div className="h-full flex items-center justify-center bg-brasil-cream">
+                <div className="text-center">
+                  <Loader2 className="size-8 text-brasil-navy animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-brasil-navy/60">carregando mapa...</p>
+                </div>
               </div>
-            </div>
-          }>
+            }
+          >
             <MapView
               venues={venues}
               activeId={activeId}
@@ -208,8 +245,7 @@ function MapaPage() {
           </Suspense>
         </ClientOnly>
 
-        {/* Location button */}
-        <div className="absolute bottom-4 right-4 z-[1000]">
+        <div className="absolute bottom-6 right-4 z-[500]">
           <LocationButton onClick={centerOnUser} isLocating={isLocating} />
         </div>
 
@@ -283,7 +319,10 @@ function MapaPage() {
       </div>
 
       {/* Venue list bottom sheet */}
-      <BottomSheet>
+      <BottomSheet
+        minimized={isBottomSheetMinimized}
+        onToggle={() => setIsBottomSheetMinimized(!isBottomSheetMinimized)}
+      >
         <div className="pb-2">
           <h2 className="font-display text-lg text-brasil-navy mb-1">onde a galera tá</h2>
           <p className="text-sm text-muted-foreground mb-3">{venues.length} locais</p>
@@ -298,9 +337,6 @@ function MapaPage() {
           }}
         />
       </BottomSheet>
-
-      {/* Add venue button */}
-      <AddVenueButton onClick={() => setShowAddModal(true)} />
     </div>
   );
 }
