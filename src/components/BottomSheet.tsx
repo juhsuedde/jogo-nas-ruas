@@ -4,9 +4,15 @@ interface BottomSheetProps {
   children: ReactNode;
   minimized?: boolean;
   onToggle?: () => void;
+  locationButton?: ReactNode;
 }
 
-export function BottomSheet({ children, minimized = false, onToggle }: BottomSheetProps) {
+export function BottomSheet({
+  children,
+  minimized = false,
+  onToggle,
+  locationButton,
+}: BottomSheetProps) {
   const snaps = [15, 45, 75];
   const [snap, setSnap] = useState(minimized ? 0 : 1);
   const [dragOffset, setDragOffset] = useState(0);
@@ -63,6 +69,8 @@ export function BottomSheet({ children, minimized = false, onToggle }: BottomShe
         <div className="h-1.5 w-12 rounded-full bg-brasil-navy/30" />
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6">{children}</div>
+
+      {locationButton && <div className="absolute -top-14 right-4">{locationButton}</div>}
     </div>
   );
 }

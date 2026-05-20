@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Search, X, Loader2, Navigation, MapPin } from "lucide-react";
+import { Search, X, Loader2, MapPin } from "lucide-react";
 
 const MapView = lazy(() =>
   import("@/features/map/components/MapView").then((m) => ({ default: m.MapView })),
@@ -12,7 +12,6 @@ import { RadiusSelector } from "@/features/map/components/RadiusSelector";
 import { VenueList } from "@/features/map/components/VenueList";
 import { BottomSheet } from "@/components/BottomSheet";
 import { LocationButton } from "@/features/map/components/LocationButton";
-
 import { useMapLocation } from "@/features/map/hooks/useMapLocation";
 import { useVenues, useAddVenue } from "@/shared/lib/venues";
 import { useMatches } from "@/shared/lib/matches";
@@ -91,9 +90,9 @@ function MapaPage() {
         address: venue.address.title,
         lat: venue.address.lat,
         lng: venue.address.lng,
-        city: city,
+        city,
         neighborhood: null,
-        state: state,
+        state,
         hasBigScreen: venue.perks.includes("big-screen"),
         hasPromotion: venue.perks.includes("promo"),
         hasParking: venue.perks.includes("parking"),
@@ -259,14 +258,8 @@ function MapaPage() {
         )}
       </div>
 
-      {/* Location button — floats above bottom sheet, bottom-right */}
-      <div className="absolute bottom-[16vh] right-4 z-[499]">
-        <LocationButton onClick={centerOnUser} isLocating={isLocating} />
-      </div>
-
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4 space-y-3">
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -287,7 +280,6 @@ function MapaPage() {
           )}
         </div>
 
-        {/* Google Places Dropdown */}
         {!selectedPlace && searchResults.length > 0 && (
           <div className="bg-white/95 backdrop-blur rounded-2xl border-2 border-brasil-navy shadow-lg overflow-hidden">
             {searchResults.map((place) => (
@@ -308,17 +300,14 @@ function MapaPage() {
           </div>
         )}
 
-        {/* Brand pill */}
         <div className="inline-flex items-center gap-2 bg-brasil-navy text-white rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider">
           <span>⚽</span>
           <span>JOGO NAS RUAS</span>
           <span className="text-brasil-yellow">· copa 2026</span>
         </div>
 
-        {/* Filters */}
         <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
 
-        {/* Radius */}
         {userLocation && (
           <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
         )}
@@ -328,6 +317,7 @@ function MapaPage() {
       <BottomSheet
         minimized={isBottomSheetMinimized}
         onToggle={() => setIsBottomSheetMinimized(!isBottomSheetMinimized)}
+        locationButton={<LocationButton onClick={centerOnUser} isLocating={isLocating} />}
       >
         <div className="pb-2">
           <h2 className="font-display text-lg text-brasil-navy mb-1">onde a galera tá</h2>
