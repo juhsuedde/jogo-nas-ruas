@@ -190,10 +190,10 @@ function MapaPage() {
   const toggle = (id: string) => {
     const fid = id as FilterId;
     const next = new Set(filters);
-    if (next.has(id)) {
-      next.delete(id);
+    if (next.has(fid)) {
+      next.delete(fid);
     } else {
-      next.add(id);
+      next.add(fid);
     }
     setFilters(next);
   };
