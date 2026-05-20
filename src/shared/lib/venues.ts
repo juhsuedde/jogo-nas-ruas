@@ -109,12 +109,16 @@ export function useMyRsvp(venueId: string) {
       if (!u.user) return null;
       const { data } = await supabase
         .from("rsvps")
-        .select("*")
+        .select("id, guest_count, created_at, match_id")
         .eq("venue_id", venueId)
         .eq("user_id", u.user.id)
         .maybeSingle();
       return data
-        ? { going: true, guests: (data as { guest_count?: number }).guest_count ?? 1 }
+        ? {
+            going: true,
+            guests: (data as unknown as { guest_count: number }).guest_count ?? 1,
+            matchId: (data as unknown as { match_id: string }).match_id,
+          }
         : null;
     },
   });
@@ -135,17 +139,15 @@ export function useToggleRsvp(venueId: string) {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Faça login para confirmar presença.");
       if (going) {
-        const { error } = await supabase
-          .from("rsvps")
-          .upsert(
-            {
-              venue_id: venueId,
-              user_id: u.user.id,
-              guest_count: guests,
-              match_id: matchId ?? null,
-            },
-            { onConflict: "venue_id,user_id" },
-          );
+        const { error } = await supabase.from("rsvps").upsert(
+          {
+            venue_id: venueId,
+            user_id: u.user.id,
+            guest_count: guests,
+            match_id: matchId ?? null,
+          },
+          { onConflict: "venue_id,user_id" },
+        );
         if (error) throw error;
       } else {
         const { error } = await supabase
