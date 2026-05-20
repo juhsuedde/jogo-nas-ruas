@@ -10,7 +10,11 @@ export const Route = createFileRoute("/venue/$id")({
   loader: async ({ params }) => {
     const { data } = await supabase
       .from("venues")
-      .select("id,name,address,city,phone,lat,lng,match,match_time")
+      .select(
+        `id, name, address, neighborhood, city_name, state, phone, lat, lng,
+        has_big_screen, has_promotion, has_parking, promotions,
+        match_ids, shows_all_matches, verified, status`,
+      )
       .eq("id", params.id)
       .maybeSingle();
     return { venueMeta: data };
@@ -20,19 +24,20 @@ export const Route = createFileRoute("/venue/$id")({
       | {
           name: string;
           address: string;
-          city: string;
+          neighborhood: string | null;
+          city_name: string;
+          state: string | null;
           phone: string | null;
           lat: number;
           lng: number;
-          match: string;
-          match_time: string;
+          match_ids: string[] | null;
         }
       | null
       | undefined;
     const url = `https://jogonasruas.lovable.app/venue/${params.id}`;
-    const title = v ? `${v.name} — ${v.match} ao vivo | Jogo nas Ruas` : "Local — Jogo nas Ruas";
+    const title = v ? `${v.name} em ${v.city_name} | Jogo nas Ruas` : "Local — Jogo nas Ruas";
     const description = v
-      ? `Assista ${v.match} no ${v.name} (${v.address}). Confirme presença e veja quem mais vai.`
+      ? `Assista aos jogos da Copa 2026 no ${v.name} (${v.address}). Confirme presença e veja quem mais vai.`
       : "Veja onde assistir aos jogos da Copa 2026 perto de você.";
     return {
       meta: [
