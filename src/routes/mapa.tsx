@@ -250,10 +250,6 @@ function MapaPage() {
           </Suspense>
         </ClientOnly>
 
-        <div className="absolute bottom-6 right-4 z-[9999]" onClick={(e) => e.stopPropagation()}>
-          <LocationButton onClick={centerOnUser} isLocating={isLocating} />
-        </div>
-
         {/* Location error toast */}
         {locationError && (
           <div className="absolute top-4 left-4 right-4 z-[1000] bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-700 flex items-center gap-2">
@@ -261,6 +257,11 @@ function MapaPage() {
             {locationError}
           </div>
         )}
+      </div>
+
+      {/* Location button — floats above bottom sheet, bottom-right */}
+      <div className="absolute bottom-[16vh] right-4 z-[499]">
+        <LocationButton onClick={centerOnUser} isLocating={isLocating} />
       </div>
 
       {/* Top bar */}
