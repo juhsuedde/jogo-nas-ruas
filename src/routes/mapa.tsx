@@ -22,7 +22,7 @@ import type { GooglePlace } from "@/shared/lib/google-places";
 import { ClientOnly } from "@/shared/components/ClientOnly";
 
 const FILTERS = [
-  { id: "today" as const, label: "Hoje" },
+  { id: "proximo" as const, label: "Próximo" },
   { id: "brazil" as const, label: "Jogos do Brasil" },
   { id: "screen" as const, label: "Telão" },
 ];
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/mapa")({
 function MapaPage() {
   const navigate = useNavigate();
   const [activeId, setActive] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Set<FilterId>>(new Set(["today"]));
+  const [filters, setFilters] = useState<Set<FilterId>>(new Set(["proximo"]));
   const [query, setQuery] = useState("");
   const [radius, setRadius] = useState(DEFAULT_RADIUS);
   const [searchResults, setSearchResults] = useState<GooglePlace[]>([]);
@@ -205,17 +205,27 @@ function MapaPage() {
 
   const venues = useMemo(() => {
     return allVenues.filter((v) => {
-      if (filters.has("brazil") && !v.isBrazilMatch) return false;
-      if (filters.has("screen") && !v.bigScreen) return false;
-      if (query && !`${v.name} ${v.address} ${v.match}`.toLowerCase().includes(query.toLowerCase()))
-        return false;
-      if (userLocation) {
+      if (filters.has("proximo") && userLocation) {
         const distance = calculateDistance(userLocation[0], userLocation[1], v.lat, v.lng);
         if (distance > radius) return false;
       }
+      if (filters.has("brazil")) {
+        const hasBrazilMatch =
+          v.matchIds &&
+          v.matchIds.some((mid) => {
+            const m = dbMatches.find((dm) => dm.id === mid);
+            return m?.isBrazilMatch === true;
+          });
+        if (!hasBrazilMatch) return false;
+      }
+      if (filters.has("screen") && !v.bigScreen) return false;
+      if (query) {
+        const searchStr = `${v.name} ${v.address}`.toLowerCase();
+        if (!searchStr.includes(query.toLowerCase())) return false;
+      }
       return true;
     });
-  }, [allVenues, filters, query, userLocation, radius]);
+  }, [allVenues, filters, query, userLocation, radius, dbMatches]);
 
   const mapCenter = userLocation ?? undefined;
   const mapZoom = userLocation ? getZoomForRadius(radius) : undefined;
