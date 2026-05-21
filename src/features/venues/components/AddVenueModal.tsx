@@ -361,16 +361,6 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                         </div>
                       )}
                     </div>
-                      </div>
-                    ) : (
-                      <div className="aspect-video rounded-lg bg-gradient-to-br from-brasil-navy to-brasil-green flex flex-col items-center justify-center p-4 text-center">
-                        <div className="size-12 rounded-full bg-brasil-yellow/20 border-2 border-brasil-yellow/40 flex items-center justify-center mb-2">
-                          <MapPin className="w-6 h-6 text-brasil-yellow" />
-                        </div>
-                        <p className="font-display text-sm text-white/90">{address.title}</p>
-                        <p className="text-[11px] text-white/60 mt-0.5">{address.subtitle}</p>
-                      </div>
-                    )}
 
                     <div>
                       <p className="font-bold text-brasil-navy">{address.title}</p>

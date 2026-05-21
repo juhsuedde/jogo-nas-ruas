@@ -1,5 +1,4 @@
 const GOOGLE_API_KEY = Deno.env.get("GOOGLE_PLACES_API_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +12,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const url = new URL(req.url);
+  const functionBase = `${url.origin}/functions/v1/google-places`;
 
   // GET — serve photo or static map for <img> tags
   if (req.method === "GET") {
@@ -204,9 +204,9 @@ Deno.serve(async (req: Request) => {
       // Build photo URL (photo or static map proxy)
       let photoUrl: string | undefined;
       if (result.photos && result.photos.length > 0) {
-        photoUrl = `${SUPABASE_URL}/functions/v1/google-places?placeId=${placeId}&type=photo`;
+        photoUrl = `${functionBase}?placeId=${placeId}&type=photo`;
       } else if (result.location?.latitude && result.location?.longitude) {
-        photoUrl = `${SUPABASE_URL}/functions/v1/google-places?placeId=${placeId}&type=map`;
+        photoUrl = `${functionBase}?placeId=${placeId}&type=map`;
       }
 
       const place = {
