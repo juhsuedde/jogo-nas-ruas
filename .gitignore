@@ -52,4 +52,5 @@ coverage
 .lovable
 
 # TypeScript
-*.tsbuildinfosupabase/.temp
+*.tsbuildinfo
+supabase/.temp
