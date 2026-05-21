@@ -7,7 +7,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Map, User, Plus } from "lucide-react";
+import { User, Plus } from "lucide-react";
 import { Toaster as SonnerToaster } from "sonner";
 import { AuthProvider } from "@/features/auth/hooks/use-auth";
 import { BottomNav } from "@/components/BottomNav";
