@@ -138,7 +138,24 @@ Deno.serve(async (req: Request) => {
 
       let photoUrl: string | undefined;
       if (result.photos && result.photos.length > 0) {
-        photoUrl = `https://places.googleapis.com/v1/${result.photos[0].name}/media?maxWidth=400&key=${GOOGLE_API_KEY}`;
+        try {
+          const photoResp = await fetch(
+            `https://places.googleapis.com/v1/${result.photos[0].name}/media?maxWidthPx=400`,
+            {
+              headers: {
+                "X-Goog-Api-Key": GOOGLE_API_KEY || "",
+              },
+            },
+          );
+          if (photoResp.ok) {
+            const buf = await photoResp.arrayBuffer();
+            const contentType = photoResp.headers.get("content-type") || "image/jpeg";
+            const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            photoUrl = `data:${contentType};base64,${base64}`;
+          }
+        } catch {
+          // photo fetch failed, skip
+        }
       }
 
       const place = {

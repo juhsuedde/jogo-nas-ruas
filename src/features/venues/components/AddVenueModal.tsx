@@ -68,6 +68,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   const [name, setName] = useState("");
   const [perks, setPerks] = useState<Set<string>>(new Set());
   const [matches, setMatches] = useState<Set<string>>(new Set());
+  const [photoError, setPhotoError] = useState(false);
 
   // Fetch matches from database
   const { data: dbMatches = [], isLoading: matchesLoading } = useMatches();
@@ -94,6 +95,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     if (googlePlace?.name && !name) {
       setName(googlePlace.name);
     }
+    setPhotoError(false);
   }, [googlePlace, name]);
 
   // ─── Search debounce ───────────────────────────────────────────────────────
@@ -337,12 +339,13 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                   </div>
                 ) : (
                   <>
-                    {googlePlace?.photoUrl ? (
+                    {googlePlace?.photoUrl && !photoError ? (
                       <div className="relative aspect-video rounded-lg overflow-hidden">
                         <img
                           src={googlePlace.photoUrl}
                           alt={address.title}
                           className="w-full h-full object-cover"
+                          onError={() => setPhotoError(true)}
                         />
                         {googlePlace.rating && (
                           <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold text-brasil-navy shadow-sm">
