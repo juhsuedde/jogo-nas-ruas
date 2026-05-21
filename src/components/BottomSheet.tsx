@@ -72,7 +72,7 @@ export function BottomSheet({
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6">{children}</div>
 
-      {radiusSelector && <div className="absolute -top-16 left-4">{radiusSelector}</div>}
+      {radiusSelector && <div className="absolute -top-12 left-4">{radiusSelector}</div>}
       {locationButton && <div className="absolute -top-20 right-4">{locationButton}</div>}
     </div>
   );
