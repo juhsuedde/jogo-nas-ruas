@@ -317,10 +317,6 @@ function MapaPage() {
         )}
 
         <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
-
-        {userLocation && (
-          <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
-        )}
       </div>
 
       {/* Venue list bottom sheet */}
@@ -328,6 +324,11 @@ function MapaPage() {
         minimized={isBottomSheetMinimized}
         onToggle={() => setIsBottomSheetMinimized(!isBottomSheetMinimized)}
         locationButton={<LocationButton onClick={centerOnUser} isLocating={isLocating} />}
+        radiusSelector={
+          userLocation ? (
+            <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
+          ) : undefined
+        }
       >
         <div className="pb-2">
           <h2 className="font-display text-lg text-brasil-navy mb-1">onde a galera tá</h2>

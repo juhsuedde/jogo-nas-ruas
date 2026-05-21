@@ -98,8 +98,7 @@ function PerfilPage() {
             <div>
               <h2 className="font-display text-2xl text-brasil-yellow">BORA?</h2>
               <p className="text-sm text-white/70 mt-2 max-w-xs mx-auto">
-                Entre pra confirmar presença nos bares, ver quem vai e montar seu histórico da Copa
-                2026.
+                Entre pra confirmar sua presença nos bares pra acompanhar os jogos da Copa 2026.
               </p>
             </div>
             <Link

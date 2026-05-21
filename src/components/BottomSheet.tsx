@@ -5,6 +5,7 @@ interface BottomSheetProps {
   minimized?: boolean;
   onToggle?: () => void;
   locationButton?: ReactNode;
+  radiusSelector?: ReactNode;
 }
 
 export function BottomSheet({
@@ -12,6 +13,7 @@ export function BottomSheet({
   minimized = false,
   onToggle,
   locationButton,
+  radiusSelector,
 }: BottomSheetProps) {
   const snaps = [15, 45, 75];
   const [snap, setSnap] = useState(minimized ? 0 : 1);
@@ -70,6 +72,7 @@ export function BottomSheet({
       </div>
       <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-6">{children}</div>
 
+      {radiusSelector && <div className="absolute -top-16 left-4">{radiusSelector}</div>}
       {locationButton && <div className="absolute -top-20 right-4">{locationButton}</div>}
     </div>
   );
