@@ -270,6 +270,12 @@ function MapaPage() {
 
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4 space-y-3">
+        <div className="inline-flex items-center gap-2 bg-brasil-navy text-white rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider">
+          <span>⚽</span>
+          <span>JOGO NAS RUAS</span>
+          <span className="text-brasil-yellow">· copa 2026</span>
+        </div>
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -309,12 +315,6 @@ function MapaPage() {
             ))}
           </div>
         )}
-
-        <div className="inline-flex items-center gap-2 bg-brasil-navy text-white rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider">
-          <span>⚽</span>
-          <span>JOGO NAS RUAS</span>
-          <span className="text-brasil-yellow">· copa 2026</span>
-        </div>
 
         <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
 
