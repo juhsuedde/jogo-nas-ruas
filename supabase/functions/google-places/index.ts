@@ -1,25 +1,72 @@
-// supabase/functions/google-places/index.ts
-// CORRIGIDO: usa handler padrão em vez de serve()
-
 const GOOGLE_API_KEY = Deno.env.get("GOOGLE_PLACES_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Handler padrão do Supabase Edge Functions (novo runtime)
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  const url = new URL(req.url);
+
+  // GET — serve photo directly for <img> tags
+  if (req.method === "GET") {
+    const placeId = url.searchParams.get("placeId");
+    if (!placeId) {
+      return new Response("Missing placeId", { status: 400, headers: corsHeaders });
+    }
+
+    const fieldMask = ["id", "photos"].join(",");
+    const resp = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+      headers: {
+        "X-Goog-Api-Key": GOOGLE_API_KEY || "",
+        "X-Goog-FieldMask": fieldMask,
+      },
+    });
+
+    if (!resp.ok) {
+      return new Response("Failed to get place details", { status: 500, headers: corsHeaders });
+    }
+
+    const result = await resp.json();
+    if (!result.photos || result.photos.length === 0) {
+      return new Response("No photos", { status: 404, headers: corsHeaders });
+    }
+
+    const photoResp = await fetch(
+      `https://places.googleapis.com/v1/${result.photos[0].name}/media?maxWidthPx=400`,
+      {
+        headers: { "X-Goog-Api-Key": GOOGLE_API_KEY || "" },
+      },
+    );
+
+    if (!photoResp.ok) {
+      return new Response("Failed to fetch photo", { status: 500, headers: corsHeaders });
+    }
+
+    const contentType = photoResp.headers.get("content-type") || "image/jpeg";
+    const blob = await photoResp.arrayBuffer();
+
+    return new Response(blob, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=86400",
+      },
+    });
+  }
+
+  // POST — search / details
   try {
     const body = await req.json();
     const { action, query, placeId, lat, lng, radius = 5000, locationBias } = body;
 
-    // SEARCH ACTION
     if (action === "search") {
       if (!query) {
         return new Response(JSON.stringify({ error: "Query is required" }), {
@@ -44,10 +91,7 @@ Deno.serve(async (req: Request) => {
       } else if (lat && lng) {
         searchBody.locationBias = {
           circle: {
-            center: {
-              latitude: Number(lat),
-              longitude: Number(lng),
-            },
+            center: { latitude: Number(lat), longitude: Number(lng) },
             radius: Number(effectiveRadius),
           },
         };
@@ -74,31 +118,28 @@ Deno.serve(async (req: Request) => {
       }
 
       const data = await response.json();
-
-      const places =
-        data.places?.map(
-          (place: {
-            id: string;
-            displayName?: { text: string };
-            formattedAddress?: string;
-            location?: { latitude: number; longitude: number };
-            types?: string[];
-          }) => ({
-            place_id: place.id,
-            name: place.displayName?.text || "",
-            formatted_address: place.formattedAddress || "",
-            lat: place.location?.latitude || 0,
-            lng: place.location?.longitude || 0,
-            types: place.types || [],
-          }),
-        ) || [];
+      const places = (data.places || []).map(
+        (place: {
+          id: string;
+          displayName?: { text: string };
+          formattedAddress?: string;
+          location?: { latitude: number; longitude: number };
+          types?: string[];
+        }) => ({
+          place_id: place.id,
+          name: place.displayName?.text || "",
+          formatted_address: place.formattedAddress || "",
+          lat: place.location?.latitude || 0,
+          lng: place.location?.longitude || 0,
+          types: place.types || [],
+        }),
+      );
 
       return new Response(JSON.stringify({ places }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // DETAILS ACTION
     if (action === "details") {
       if (!placeId) {
         return new Response(JSON.stringify({ error: "placeId is required" }), {
@@ -136,26 +177,10 @@ Deno.serve(async (req: Request) => {
 
       const result = await response.json();
 
+      // Build photo URL using the edge function itself as proxy
       let photoUrl: string | undefined;
       if (result.photos && result.photos.length > 0) {
-        try {
-          const photoResp = await fetch(
-            `https://places.googleapis.com/v1/${result.photos[0].name}/media?maxWidthPx=400`,
-            {
-              headers: {
-                "X-Goog-Api-Key": GOOGLE_API_KEY || "",
-              },
-            },
-          );
-          if (photoResp.ok) {
-            const buf = await photoResp.arrayBuffer();
-            const contentType = photoResp.headers.get("content-type") || "image/jpeg";
-            const base64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-            photoUrl = `data:${contentType};base64,${base64}`;
-          }
-        } catch {
-          // photo fetch failed, skip
-        }
+        photoUrl = `${SUPABASE_URL}/functions/v1/google-places?placeId=${placeId}`;
       }
 
       const place = {
