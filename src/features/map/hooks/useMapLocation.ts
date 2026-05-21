@@ -58,6 +58,12 @@ export function useMapLocation({
   }, []);
 
   const centerOnUser = useCallback(() => {
+    if (location) {
+      setError(null);
+      onLocationChangeRef.current?.(location);
+      return;
+    }
+
     if (!navigator.geolocation) {
       setError("Geolocalização não suportada");
       return;
@@ -91,7 +97,7 @@ export function useMapLocation({
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
     );
-  }, []);
+  }, [location]);
 
   return { location, error, isLocating, centerOnUser };
 }
