@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
+import { useState, useEffect } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Checkbox } from "@/shared/components/ui/checkbox";
-import { Search, MapPin, Star, Loader2, ChevronLeft, Tv, Tag, Car } from "lucide-react";
+import { Search, MapPin, Star, Loader2, X, Tv, Tag, Car } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/shared/lib/supabase";
 import { useMatches } from "@/shared/lib/matches";
@@ -241,18 +240,27 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-2">
-          <DialogTitle className="text-xl font-bold text-brasil-navy uppercase tracking-wide">
+    <div className="absolute inset-0 overflow-y-auto bg-brasil-cream">
+      <div className="max-w-md mx-auto px-4 pt-5 pb-12">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="size-10 rounded-full bg-white handmade-border flex items-center justify-center hover:bg-brasil-yellow/30 transition-colors"
+            aria-label="Fechar"
+          >
+            <X className="size-4 text-brasil-navy" />
+          </button>
+          <h1 className="font-display text-base text-brasil-navy tracking-wider">
             {step === 1 && "Cadastrar Local"}
             {step === 2 && "Conta pra Gente"}
             {step === 3 && "Quais Jogos?"}
-          </DialogTitle>
-        </DialogHeader>
+          </h1>
+          <div className="size-10" />
+        </div>
 
         {/* Step indicator */}
-        <div className="px-6 pb-4 flex items-center gap-2">
+        <div className="flex items-center gap-2 mb-6">
           {[1, 2, 3].map((s) => (
             <div
               key={s}
@@ -265,7 +273,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
 
         {/* ─── STEP 1: Localização ─────────────────────────────────────────── */}
         {step === 1 && (
-          <div className="px-6 pb-6 space-y-4">
+          <div className="space-y-4">
             <p className="text-sm text-brasil-navy/70">
               Busque o endereço do local. Selecione o resultado correto.
             </p>
@@ -368,7 +376,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
 
         {/* ─── STEP 2: Informações do local ────────────────────────────────── */}
         {step === 2 && (
-          <div className="px-6 pb-6 space-y-5">
+          <div className="space-y-5">
             <p className="text-sm text-brasil-navy/70">Nome, endereço e o que rola por lá</p>
 
             {/* Name — preenchido automaticamente, mas editável */}
@@ -447,7 +455,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
 
         {/* ─── STEP 3: Jogos ──────────────────────────────────────────────── */}
         {step === 3 && (
-          <div className="px-6 pb-6 space-y-5">
+          <div className="space-y-5">
             <p className="text-sm text-brasil-navy/70">Escolha um ou mais. Dá pra editar depois.</p>
             <div className="space-y-2">
               {matchesLoading ? (
@@ -492,14 +500,12 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
         )}
 
         {/* ─── Footer buttons ─────────────────────────────────────────────── */}
-        <div className="px-6 pb-6 pt-2 flex items-center gap-3">
+        <div className="pt-6 flex items-center gap-3">
           {step > 1 && (
             <Button
-              variant="outline"
               onClick={handleBack}
-              className="flex-1 rounded-xl border-2 border-brasil-navy/30"
+              className="flex-1 rounded-xl border-2 border-brasil-navy/30 bg-white text-brasil-navy font-bold uppercase tracking-wider hover:bg-brasil-cream"
             >
-              <ChevronLeft className="w-4 h-4 mr-1" />
               Voltar
             </Button>
           )}
@@ -519,7 +525,9 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
             </Button>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
+
+export default AddVenueModal;

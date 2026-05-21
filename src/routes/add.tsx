@@ -1,14 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { AddVenueModal } from "@/features/venues/components/AddVenueModal";
 import { useAddVenue } from "@/shared/lib/venues";
 import { toast } from "sonner";
-
-const AddVenueModalLazy = lazy(() =>
-  import("@/features/venues/components/AddVenueModal").then((module) => ({
-    default: module.AddVenueModal,
-  })),
-);
 
 export const Route = createFileRoute("/add")({
   head: () => {
@@ -79,21 +73,13 @@ function AddPage() {
   }
 
   return (
-    <Suspense
-      fallback={
-        <div className="fixed inset-0 flex items-center justify-center bg-background">
-          <Loader2 className="size-8 animate-spin text-brasil-green" />
-        </div>
-      }
-    >
-      <AddVenueModalLazy
-        open={open}
-        onOpenChange={(isOpen) => {
-          setOpen(isOpen);
-          if (!isOpen) navigate({ to: "/" });
-        }}
-        onSubmit={handleSubmit}
-      />
-    </Suspense>
+    <AddVenueModal
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) navigate({ to: "/" });
+      }}
+      onSubmit={handleSubmit}
+    />
   );
 }
