@@ -88,18 +88,36 @@ function PerfilPage() {
             <div className="size-10" />
           </div>
         </div>
-        <div className="max-w-md mx-auto px-4 pt-10 text-center space-y-6">
-          <div className="text-6xl">👤</div>
-          <h2 className="font-display text-xl text-brasil-navy">Faça login para ver seu perfil</h2>
-          <p className="text-muted-foreground">
-            Veja seus locais cadastrados, confirmações e histórico de jogos.
+        <div className="max-w-md mx-auto px-4 pt-12">
+          <div className="rounded-3xl bg-brasil-navy handmade-border-yellow p-8 text-center space-y-5">
+            <div className="flex justify-center">
+              <div className="size-24 rounded-full bg-brasil-yellow border-4 border-white flex items-center justify-center text-4xl shadow-lg">
+                ⚽
+              </div>
+            </div>
+            <div>
+              <h2 className="font-display text-2xl text-brasil-yellow">BORA?</h2>
+              <p className="text-sm text-white/70 mt-2 max-w-xs mx-auto">
+                Entre pra confirmar presença nos bares, ver quem vai e montar seu histórico da Copa
+                2026.
+              </p>
+            </div>
+            <Link
+              to="/login"
+              className="block w-full rounded-2xl bg-brasil-green text-white font-bold py-3 text-center font-display tracking-wider hover:brightness-110 transition-all"
+            >
+              ENTRAR
+            </Link>
+            <Link
+              to="/mapa"
+              className="block w-full rounded-2xl bg-white text-brasil-navy font-bold py-3 text-center font-display tracking-wider hover:bg-brasil-cream transition-all"
+            >
+              EXPLORAR MAPA
+            </Link>
+          </div>
+          <p className="text-center text-[11px] text-muted-foreground pt-6">
+            jogo nas ruas · copa 2026
           </p>
-          <Link
-            to="/login"
-            className="inline-block w-full rounded-2xl bg-brasil-green text-white font-bold py-3 text-center"
-          >
-            Entrar
-          </Link>
         </div>
       </main>
     );
