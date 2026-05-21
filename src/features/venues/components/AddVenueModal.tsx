@@ -339,20 +339,28 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                   </div>
                 ) : (
                   <>
-                    {googlePlace?.photoUrl && !photoError ? (
-                      <div className="relative aspect-video rounded-lg overflow-hidden">
-                        <img
-                          src={googlePlace.photoUrl}
-                          alt={address.title}
-                          className="w-full h-full object-cover"
-                          onError={() => setPhotoError(true)}
-                        />
-                        {googlePlace.rating && (
-                          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold text-brasil-navy shadow-sm">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            {googlePlace.rating.toFixed(1)}
-                          </div>
-                        )}
+                    <div className="relative aspect-video rounded-lg overflow-hidden border border-brasil-navy/10 bg-brasil-cream">
+                      {googlePlace?.photoUrl && !photoError ? (
+                        <>
+                          <img
+                            src={googlePlace.photoUrl}
+                            alt={address.title}
+                            className="w-full h-full object-cover"
+                            onError={() => setPhotoError(true)}
+                          />
+                          {googlePlace.rating && (
+                            <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold text-brasil-navy shadow-sm">
+                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                              {googlePlace.rating.toFixed(1)}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <MapPin className="w-8 h-8 text-brasil-navy/30" />
+                        </div>
+                      )}
+                    </div>
                       </div>
                     ) : (
                       <div className="aspect-video rounded-lg bg-gradient-to-br from-brasil-navy to-brasil-green flex flex-col items-center justify-center p-4 text-center">

@@ -14,14 +14,15 @@ Deno.serve(async (req: Request) => {
 
   const url = new URL(req.url);
 
-  // GET — serve photo directly for <img> tags
+  // GET — serve photo or static map for <img> tags
   if (req.method === "GET") {
     const placeId = url.searchParams.get("placeId");
+    const type = url.searchParams.get("type") || "photo";
     if (!placeId) {
       return new Response("Missing placeId", { status: 400, headers: corsHeaders });
     }
 
-    const fieldMask = ["id", "photos"].join(",");
+    const fieldMask = ["id", "photos", "location"].join(",");
     const resp = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
       headers: {
         "X-Goog-Api-Key": GOOGLE_API_KEY || "",
@@ -34,10 +35,33 @@ Deno.serve(async (req: Request) => {
     }
 
     const result = await resp.json();
-    if (!result.photos || result.photos.length === 0) {
-      return new Response("No photos", { status: 404, headers: corsHeaders });
+
+    // type=map or no photos → serve static map
+    if (type === "map" || !result.photos || result.photos.length === 0) {
+      const lat = result.location?.latitude;
+      const lng = result.location?.longitude;
+      if (!lat || !lng) {
+        return new Response("No location data", { status: 404, headers: corsHeaders });
+      }
+      const mapUrl =
+        `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=16&size=600x300&scale=2&markers=color:0x2E7D32%7C${lat},${lng}&key=${GOOGLE_API_KEY}&maptype=roadmap`;
+      const mapResp = await fetch(mapUrl);
+      if (!mapResp.ok) {
+        return new Response("Failed to fetch static map", { status: 500, headers: corsHeaders });
+      }
+      const contentType = mapResp.headers.get("content-type") || "image/png";
+      const blob = await mapResp.arrayBuffer();
+      return new Response(blob, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": contentType,
+          "Cache-Control": "public, max-age=86400",
+        },
+      });
     }
 
+    // type=photo → serve photo
     const photoResp = await fetch(
       `https://places.googleapis.com/v1/${result.photos[0].name}/media?maxWidthPx=400`,
       {
@@ -177,10 +201,12 @@ Deno.serve(async (req: Request) => {
 
       const result = await response.json();
 
-      // Build photo URL using the edge function itself as proxy
+      // Build photo URL (photo or static map proxy)
       let photoUrl: string | undefined;
       if (result.photos && result.photos.length > 0) {
-        photoUrl = `${SUPABASE_URL}/functions/v1/google-places?placeId=${placeId}`;
+        photoUrl = `${SUPABASE_URL}/functions/v1/google-places?placeId=${placeId}&type=photo`;
+      } else if (result.location?.latitude && result.location?.longitude) {
+        photoUrl = `${SUPABASE_URL}/functions/v1/google-places?placeId=${placeId}&type=map`;
       }
 
       const place = {
