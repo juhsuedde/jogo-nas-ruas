@@ -36,7 +36,7 @@ interface GooglePlaceDetails {
   name: string;
   photoUrl?: string;
   rating?: number;
-  phone?: string; // disponível, mas não usamos no cadastro
+  phone?: string;
   website?: string;
 }
 
@@ -61,10 +61,7 @@ interface AddVenueModalProps {
 }
 
 export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalProps) {
-  // Steps
   const [step, setStep] = useState(1);
-
-  // Search / Place selection
   const [query, setQuery] = useState("");
   const [address, setAddress] = useState<Address | null>(null);
   const [googlePlace, setGooglePlace] = useState<GooglePlaceDetails | null>(null);
@@ -72,17 +69,12 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
-
-  // Venue data
   const [name, setName] = useState("");
   const [perks, setPerks] = useState<Set<string>>(new Set());
   const [matches, setMatches] = useState<Set<string>>(new Set());
   const [photoError, setPhotoError] = useState(false);
-
-  // Fetch matches from database
   const { data: dbMatches = [], isLoading: matchesLoading } = useMatches();
 
-  // ─── Reset when modal opens ──────────────────────────────────────────────────
   useEffect(() => {
     if (open) {
       setStep(1);
@@ -99,23 +91,17 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     }
   }, [open]);
 
-  // ─── Auto-fill name when Google Place details arrive ───────────────────────
   useEffect(() => {
-    if (googlePlace?.name && !name) {
-      setName(googlePlace.name);
-    }
+    if (googlePlace?.name && !name) setName(googlePlace.name);
     setPhotoError(false);
   }, [googlePlace, name]);
 
-  // ─── Search debounce ───────────────────────────────────────────────────────
   useEffect(() => {
     if (query.length < 2) {
       setPlaceSuggestions([]);
       return;
     }
-    const timer = setTimeout(() => {
-      handleSearch(query);
-    }, 300);
+    const timer = setTimeout(() => handleSearch(query), 300);
     return () => clearTimeout(timer);
   }, [query]);
 
@@ -125,7 +111,6 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     try {
       let lat: number | undefined;
       let lng: number | undefined;
-
       try {
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -137,9 +122,8 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
         lat = position.coords.latitude;
         lng = position.coords.longitude;
       } catch {
-        // Location unavailable, search without coords
+        // Location unavailable
       }
-
       const { data, error } = await supabase.functions.invoke("google-places", {
         body: { action: "search", query: q, lat, lng, radius: 8000 },
       });
@@ -171,7 +155,6 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     setPlaceSuggestions([]);
     setQuery("");
     setIsLoadingDetails(true);
-
     try {
       const { data, error } = await supabase.functions.invoke("google-places", {
         body: { action: "details", placeId: suggestion.placeId },
@@ -191,7 +174,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
           setAddress((prev) => (prev ? { ...prev, lat: place.lat, lng: place.lng } : prev));
         }
       }
-    } catch (e) {
+    } catch {
       toast.error("Erro ao carregar detalhes. Usando informações básicas do endereço.");
     } finally {
       setIsLoadingDetails(false);
@@ -201,8 +184,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   function togglePerk(id: string) {
     setPerks((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   }
@@ -210,8 +192,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   function toggleMatch(id: string) {
     setMatches((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   }
@@ -249,11 +230,10 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
     toast.success("Local cadastrado com sucesso!");
   }
 
-  // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="absolute inset-0 flex flex-col bg-brasil-cream">
-      {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+    <div className="fixed inset-0 z-50 bg-brasil-cream grid grid-rows-[1fr_auto] overflow-hidden">
+      {/* ─── Scrollable content ─────────────────────────────────────────── */}
+      <div className="overflow-y-auto">
         <div className="max-w-md mx-auto px-4 pt-5 pb-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -284,14 +264,12 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
             ))}
           </div>
 
-          {/* ─── STEP 1: Localização ─────────────────────────────────────────── */}
+          {/* ─── STEP 1 ───────────────────────────────────────────────────── */}
           {step === 1 && (
             <div className="space-y-4">
               <p className="text-sm text-brasil-navy/70">
                 Busque o endereço do local. Selecione o resultado correto.
               </p>
-
-              {/* Search input */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brasil-navy/40" />
                 <Input
@@ -305,13 +283,11 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                 />
               </div>
 
-              {/* Suggestions */}
               {!address && query.length > 0 && (
                 <div className="space-y-2">
                   {isSearching && (
                     <div className="flex items-center gap-2 text-sm text-brasil-navy/60 py-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Buscando...
+                      <Loader2 className="w-4 h-4 animate-spin" /> Buscando...
                     </div>
                   )}
                   {!isSearching && placeSuggestions.length > 0 && (
@@ -340,13 +316,11 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                 </div>
               )}
 
-              {/* Selected address card */}
               {address && (
                 <div className="rounded-xl border-2 border-brasil-green/40 bg-brasil-green/5 p-4 space-y-3">
                   {isLoadingDetails ? (
                     <div className="flex items-center gap-2 text-sm text-brasil-navy/60">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Carregando detalhes…
+                      <Loader2 className="w-4 h-4 animate-spin" /> Carregando detalhes…
                     </div>
                   ) : (
                     <>
@@ -379,14 +353,12 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                           </div>
                         )}
                       </div>
-
                       <div>
                         <p className="font-bold text-brasil-navy">{address.title}</p>
                         <p className="text-sm text-brasil-navy/70">{address.subtitle}</p>
                         {googlePlace && (
                           <p className="text-xs text-brasil-green mt-1 flex items-center gap-1">
-                            <Star className="w-3 h-3" />
-                            Dados confirmados pelo Google Maps
+                            <Star className="w-3 h-3" /> Dados confirmados pelo Google Maps
                           </p>
                         )}
                       </div>
@@ -397,12 +369,10 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
             </div>
           )}
 
-          {/* ─── STEP 2: Informações do local ────────────────────────────────── */}
+          {/* ─── STEP 2 ───────────────────────────────────────────────────── */}
           {step === 2 && (
             <div className="space-y-5">
               <p className="text-sm text-brasil-navy/70">Nome, endereço e o que rola por lá</p>
-
-              {/* Name — preenchido automaticamente, mas editável */}
               <div className="space-y-1.5">
                 <Label
                   htmlFor="venue-name"
@@ -426,8 +396,6 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                   </button>
                 )}
               </div>
-
-              {/* Address — read-only, vem do Google */}
               <div className="space-y-1.5">
                 <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
                   Endereço
@@ -437,8 +405,6 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                   <p>{address?.subtitle}</p>
                 </div>
               </div>
-
-              {/* Perks */}
               <div className="space-y-2">
                 <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
                   O que tem no local?
@@ -458,13 +424,10 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                         }`}
                       >
                         <span className="flex items-center gap-3 text-sm font-medium">
-                          <Icon className="w-5 h-5" />
-                          {p.label}
+                          <Icon className="w-5 h-5" /> {p.label}
                         </span>
                         <div
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                            active ? "border-brasil-green bg-brasil-green" : "border-brasil-navy/30"
-                          }`}
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${active ? "border-brasil-green bg-brasil-green" : "border-brasil-navy/30"}`}
                         >
                           {active && <span className="text-white text-xs">✓</span>}
                         </div>
@@ -476,7 +439,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
             </div>
           )}
 
-          {/* ─── STEP 3: Jogos ──────────────────────────────────────────────── */}
+          {/* ─── STEP 3 ───────────────────────────────────────────────────── */}
           {step === 3 && (
             <div className="space-y-5">
               <p className="text-sm text-brasil-navy/70">
@@ -526,8 +489,8 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
         </div>
       </div>
 
-      {/* ─── Fixed Footer buttons ───────────────────────────────────────── */}
-      <div className="shrink-0 border-t border-brasil-navy/10 bg-brasil-cream/95 backdrop-blur-sm z-10">
+      {/* ─── Fixed footer (botões) ────────────────────────────────────── */}
+      <div className="border-t border-brasil-navy/10 bg-brasil-cream/95 backdrop-blur-sm z-10">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
           {step > 1 && (
             <Button
@@ -576,8 +539,7 @@ function MiniMap({ lat, lng, title }: { lat: number; lng: number; title: string 
         <Marker position={[lat, lng]} icon={markerIcon} />
       </MapContainer>
       <div className="absolute bottom-2 left-2 z-[999] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-brasil-navy shadow-sm flex items-center gap-1 pointer-events-none">
-        <MapPin className="w-3 h-3 text-brasil-green" />
-        {title}
+        <MapPin className="w-3 h-3 text-brasil-green" /> {title}
       </div>
     </div>
   );
