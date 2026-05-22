@@ -4,13 +4,23 @@
 -- Run in Supabase SQL Editor: https://supabase.com/dashboard/project/nemrqkkuptdikiqqgaho/sql/new
 -- =============================================================
 
--- 1. Create cities table
-CREATE TABLE IF NOT EXISTS cities (
+-- 1. Drop existing table and recreate with normalized schema
+DROP TABLE IF EXISTS cities CASCADE;
+
+CREATE TABLE cities (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   state text NOT NULL DEFAULT 'SP',
   created_at timestamptz DEFAULT now()
 );
+
+-- Enable RLS and create policies
+ALTER TABLE cities ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "public_read_cities" ON cities FOR SELECT USING (true);
+CREATE POLICY "authenticated_insert_cities" ON cities FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE INDEX IF NOT EXISTS idx_cities_name_state ON cities (name, state);
 
 CREATE INDEX IF NOT EXISTS idx_cities_name_state ON cities (name, state);
 
