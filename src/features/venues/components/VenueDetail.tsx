@@ -49,13 +49,27 @@ export function VenueDetail({
       </div>
 
       <div className="mt-3 rounded-2xl bg-card border-2 border-brasil-navy/20 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="size-5 text-brasil-green" />
-          <div>
-            <div className="font-display text-2xl text-brasil-navy leading-none">{venue.rsvps}</div>
-            <div className="text-xs text-muted-foreground">torcedores confirmados</div>
+        {venue.rsvps > 0 && (
+          <div className="flex items-center gap-2">
+            <Users className="size-5 text-brasil-green" />
+            <div>
+              <div className="font-display text-2xl text-brasil-navy leading-none">
+                {venue.rsvps}
+              </div>
+              <div className="text-xs text-muted-foreground">torcedores confirmados</div>
+            </div>
           </div>
-        </div>
+        )}
+        {venue.rsvps === 0 && (
+          <div className="flex items-center gap-2">
+            <Users className="size-5 text-brasil-navy/40" />
+            <div>
+              <div className="text-xs text-muted-foreground">
+                seja o primeiro a confirmar presença
+              </div>
+            </div>
+          </div>
+        )}
         <button
           onClick={onToggleGoing}
           className={`rounded-xl px-4 py-2 font-display text-sm border-2 border-brasil-navy ${

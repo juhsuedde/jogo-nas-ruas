@@ -155,7 +155,23 @@ export function useToggleRsvp(venueId: string) {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onMutate: async ({ going }) => {
+      await qc.cancelQueries({ queryKey: ["venue", venueId] });
+      const previous = qc.getQueryData<Venue>(["venue", venueId]);
+      if (previous) {
+        qc.setQueryData<Venue>(["venue", venueId], {
+          ...previous,
+          rsvps: Math.max(0, previous.rsvps + (going ? 1 : -1)),
+        });
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        qc.setQueryData(["venue", venueId], context.previous);
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["venue", venueId] });
       qc.invalidateQueries({ queryKey: ["rsvp", venueId] });
       qc.invalidateQueries({ queryKey: ["venues"] });
