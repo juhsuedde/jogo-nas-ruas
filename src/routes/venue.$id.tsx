@@ -6,6 +6,20 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { toast } from "sonner";
 import { supabase } from "@/shared/lib/supabase";
 
+interface VenueMeta {
+  name: string;
+  address: string;
+  neighborhood: string | null;
+  city_name: string;
+  state: string | null;
+  phone: string | null;
+  lat: number;
+  lng: number;
+  match_ids: string[] | null;
+}
+
+const OG_IMAGE = "https://jogonasruas.vercel.app/og.jpg";
+
 export const Route = createFileRoute("/venue/$id")({
   loader: async ({ params }) => {
     const { data } = await supabase
@@ -17,23 +31,10 @@ export const Route = createFileRoute("/venue/$id")({
       )
       .eq("id", params.id)
       .maybeSingle();
-    return { venueMeta: data };
+    return { venueMeta: (data ?? null) as VenueMeta | null };
   },
   head: ({ params, loaderData }) => {
-    const v = loaderData?.venueMeta as
-      | {
-          name: string;
-          address: string;
-          neighborhood: string | null;
-          city_name: string;
-          state: string | null;
-          phone: string | null;
-          lat: number;
-          lng: number;
-          match_ids: string[] | null;
-        }
-      | null
-      | undefined;
+    const v = loaderData?.venueMeta;
     const url = `https://jogonasruas.vercel.app/venue/${params.id}`;
     const title = v ? `${v.name} em ${v.city_name} | Jogo nas Ruas` : "Local — Jogo nas Ruas";
     const description = v
@@ -46,9 +47,12 @@ export const Route = createFileRoute("/venue/$id")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:url", content: url },
+        { property: "og:image", content: OG_IMAGE },
         { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
+        { name: "twitter:image", content: OG_IMAGE },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: v
@@ -67,7 +71,6 @@ export const Route = createFileRoute("/venue/$id")({
                   longitude: v.lng,
                 },
                 url,
-                addressLocality: v.city,
               }),
             },
           ]
