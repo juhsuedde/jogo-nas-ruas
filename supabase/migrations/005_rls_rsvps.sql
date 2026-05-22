@@ -29,6 +29,7 @@ CREATE POLICY "own_delete" ON rsvps
 
 -- 6. SECURITY DEFINER function: get RSVP count for a single venue
 --    Bypasses RLS so anyone can see the crowd meter
+DROP FUNCTION IF EXISTS get_venue_rsvp_count;
 CREATE OR REPLACE FUNCTION get_venue_rsvp_count(venue_id uuid)
 RETURNS integer
 LANGUAGE sql
@@ -39,6 +40,7 @@ AS $$
 $$;
 
 -- 7. SECURITY DEFINER function: get all RSVP counts (for multi-venue queries)
+DROP FUNCTION IF EXISTS get_all_venue_rsvp_counts;
 CREATE OR REPLACE FUNCTION get_all_venue_rsvp_counts()
 RETURNS TABLE (venue_id uuid, count bigint)
 LANGUAGE sql
