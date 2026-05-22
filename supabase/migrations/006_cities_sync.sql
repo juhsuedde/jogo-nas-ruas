@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_venues_city_id ON venues (city_id);
 CREATE OR REPLACE FUNCTION ensure_city(city_name text, city_state text DEFAULT 'SP')
 RETURNS uuid
 LANGUAGE plpgsql
-STABLE
+VOLATILE
 AS $$
 DECLARE
   found_id uuid;
