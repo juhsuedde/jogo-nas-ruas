@@ -7,6 +7,15 @@ import { Search, MapPin, Star, Loader2, X, Tv, Tag, Car } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/shared/lib/supabase";
 import { useMatches } from "@/shared/lib/matches";
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import L from "leaflet";
+
+const markerIcon = L.divIcon({
+  className: "",
+  html: `<div style="width:24px;height:24px;background:#2E7D32;border:3px solid white;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+});
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface PlaceSuggestion {
@@ -355,22 +364,16 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                             </div>
                           )}
                         </>
-                      ) : address?.lat && address?.lng && (address.lat !== 0 || address.lng !== 0) ? (
-                        <>
-                          <img
-                            src={`https://staticmap.openstreetmap.de/staticmap.php?center=${address.lat},${address.lng}&zoom=16&size=600x300&markers=${address.lat},${address.lng},red-pushpin`}
-                            alt={`Mapa de ${address.title}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-brasil-navy shadow-sm flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-brasil-green" />
-                            Localização no mapa
-                          </div>
-                        </>
+                      ) : address?.lat &&
+                        address?.lng &&
+                        (address.lat !== 0 || address.lng !== 0) ? (
+                        <MiniMap lat={address.lat} lng={address.lng} title={address.title} />
                       ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-brasil-navy/5 to-brasil-green/10">
                           <MapPin className="w-8 h-8 text-brasil-navy/30" />
-                          <span className="text-xs text-brasil-navy/50 font-medium">{address.title}</span>
+                          <span className="text-xs text-brasil-navy/50 font-medium">
+                            {address.title}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -543,6 +546,31 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
             </Button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniMap({ lat, lng, title }: { lat: number; lng: number; title: string }) {
+  return (
+    <div className="relative w-full h-full">
+      <MapContainer
+        center={[lat, lng]}
+        zoom={16}
+        zoomControl={false}
+        dragging={false}
+        scrollWheelZoom={false}
+        touchZoom={false}
+        doubleClickZoom={false}
+        attributionControl={false}
+        className="w-full h-full"
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <Marker position={[lat, lng]} icon={markerIcon} />
+      </MapContainer>
+      <div className="absolute bottom-2 left-2 z-[999] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-brasil-navy shadow-sm flex items-center gap-1 pointer-events-none">
+        <MapPin className="w-3 h-3 text-brasil-green" />
+        {title}
       </div>
     </div>
   );

@@ -43,8 +43,7 @@ Deno.serve(async (req: Request) => {
       if (!lat || !lng) {
         return new Response("No location data", { status: 404, headers: corsHeaders });
       }
-      const mapUrl =
-        `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=16&size=600x300&scale=2&markers=color:0x2E7D32%7C${lat},${lng}&key=${GOOGLE_API_KEY}&maptype=roadmap`;
+      const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=16&size=600x300&scale=2&markers=color:0x2E7D32%7C${lat},${lng}&key=${GOOGLE_API_KEY}&maptype=roadmap`;
       const mapResp = await fetch(mapUrl);
       if (!mapResp.ok) {
         return new Response("Failed to fetch static map", { status: 500, headers: corsHeaders });
