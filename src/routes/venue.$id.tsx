@@ -30,6 +30,7 @@ export const Route = createFileRoute("/venue/$id")({
         match_ids, shows_all_matches, verified, status`,
       )
       .eq("id", params.id)
+      .eq("status", "approved")
       .maybeSingle();
     return { venueMeta: (data ?? null) as VenueMeta | null };
   },
@@ -84,7 +85,7 @@ function VenuePage() {
   const { id } = useParams({ from: "/venue/$id" });
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: venue, isLoading } = useVenue(id);
+  const { data: venue, isLoading } = useVenue(id, user?.id);
   const { data: myRsvp } = useMyRsvp(id);
   const toggleRsvp = useToggleRsvp(id);
 

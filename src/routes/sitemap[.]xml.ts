@@ -21,7 +21,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         ];
 
         try {
-          const { data } = await supabase.from("venues").select("id");
+          const { data } = await supabase.from("venues").select("id").eq("status", "approved");
           if (data) {
             for (const row of data) {
               entries.push({

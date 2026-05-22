@@ -63,6 +63,7 @@ export function useVenues() {
           match_ids, shows_all_matches, verified, status,
           created_at, rsvps(count)`,
         )
+        .eq("status", "approved")
         .order("created_at", { ascending: false });
       if (error) {
         throw new Error(`Falha ao carregar locais: ${error.message}`);
@@ -76,11 +77,11 @@ export function useVenues() {
   });
 }
 
-export function useVenue(id: string) {
+export function useVenue(id: string, userId?: string) {
   return useQuery({
-    queryKey: ["venue", id],
+    queryKey: ["venue", id, userId],
     queryFn: async (): Promise<Venue | null> => {
-      const { data, error } = await supabase
+      const q = supabase
         .from("venues")
         .select(
           `id, name, address, neighborhood, city_name, state, lat, lng,
@@ -88,8 +89,15 @@ export function useVenue(id: string) {
           match_ids, shows_all_matches, verified, status,
           created_at, rsvps(count)`,
         )
-        .eq("id", id)
-        .maybeSingle();
+        .eq("id", id);
+
+      if (userId) {
+        q.or(`status.eq.approved,created_by.eq.${userId}`);
+      } else {
+        q.eq("status", "approved");
+      }
+
+      const { data, error } = await q.maybeSingle();
       if (error) {
         throw new Error(`Falha ao carregar local: ${error.message}`);
       }
