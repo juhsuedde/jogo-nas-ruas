@@ -355,9 +355,22 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
                             </div>
                           )}
                         </>
+                      ) : address?.lat && address?.lng && (address.lat !== 0 || address.lng !== 0) ? (
+                        <>
+                          <img
+                            src={`https://staticmap.openstreetmap.de/staticmap.php?center=${address.lat},${address.lng}&zoom=16&size=600x300&markers=${address.lat},${address.lng},red-pushpin`}
+                            alt={`Mapa de ${address.title}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md text-xs font-medium text-brasil-navy shadow-sm flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-brasil-green" />
+                            Localização no mapa
+                          </div>
+                        </>
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-brasil-navy/5 to-brasil-green/10">
                           <MapPin className="w-8 h-8 text-brasil-navy/30" />
+                          <span className="text-xs text-brasil-navy/50 font-medium">{address.title}</span>
                         </div>
                       )}
                     </div>
