@@ -445,7 +445,10 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
               <p className="text-sm text-brasil-navy/70">
                 Escolha um ou mais. Dá pra editar depois.
               </p>
-              <div className="space-y-2 overflow-y-auto" style={{ maxHeight: "calc(100dvh - 300px)" }}>
+              <div
+                className="space-y-2 overflow-y-auto"
+                style={{ maxHeight: "calc(100dvh - 300px)" }}
+              >
                 {matchesLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="size-6 text-brasil-navy animate-spin" />

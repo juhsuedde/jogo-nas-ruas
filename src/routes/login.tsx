@@ -1,14 +1,18 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : "/mapa",
+  }),
   head: () => ({ meta: [{ title: "Entrar — Jogo nas Ruas" }] }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { redirectTo } = useSearch({ from: "/login" });
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -33,7 +37,7 @@ function LoginPage() {
       setInfo("Conta criada! Se a confirmação por e-mail estiver ativa, verifique sua caixa.");
       return;
     }
-    navigate({ to: "/mapa" });
+    navigate({ to: redirectTo });
   };
 
   return (
