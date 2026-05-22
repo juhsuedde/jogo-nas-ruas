@@ -1,60 +1,22 @@
-import type { Messaging, MessagePayload } from "firebase/messaging";
 import { supabase } from "@/shared/lib/supabase";
 
-const getEnvVar = (key: string): string => {
-  const value = import.meta.env[key];
-  if (!value) {
-    console.error(`Missing environment variable: ${key}`);
-    return "";
-  }
-  return value;
-};
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY || "";
 
-const firebaseConfig = {
-  apiKey: getEnvVar("VITE_FIREBASE_API_KEY"),
-  authDomain: "jogo-nas-ruas.firebaseapp.com",
-  projectId: "jogo-nas-ruas",
-  storageBucket: "jogo-nas-ruas.firebasestorage.app",
-  messagingSenderId: getEnvVar("VITE_FIREBASE_SENDER_ID"),
-  appId: getEnvVar("VITE_FIREBASE_APP_ID"),
-};
-
-const VAPID_KEY = getEnvVar("VITE_FIREBASE_VAPID_KEY");
-
-let firebaseApp: ReturnType<typeof import("firebase/app").initializeApp> | null = null;
-let _messaging: Messaging | null = null;
-
-async function getMessagingSafe(): Promise<Messaging | null> {
+function getSw(): ServiceWorkerContainer | null {
   if (typeof window === "undefined") return null;
   if (!("Notification" in window) || !("serviceWorker" in navigator)) return null;
-  if (_messaging) return _messaging;
-
-  try {
-    const { initializeApp } = await import("firebase/app");
-    const { getMessaging } = await import("firebase/messaging");
-
-    if (!firebaseApp) {
-      firebaseApp = initializeApp(firebaseConfig);
-    }
-    _messaging = getMessaging(firebaseApp);
-    return _messaging;
-  } catch (e) {
-    console.error("FCM init failed:", e);
-    return null;
-  }
+  return navigator.serviceWorker;
 }
 
 export async function requestNotificationPermission(): Promise<string | null> {
   try {
-    const messaging = await getMessagingSafe();
-    if (!messaging) return null;
+    const sw = getSw();
+    if (!sw) return null;
 
     const permission = await Notification.requestPermission();
     if (permission !== "granted") return null;
 
-    const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
-      scope: "/",
-    });
+    const registration = await sw.register("/firebase-messaging-sw.js", { scope: "/" });
 
     if (registration.installing) {
       await new Promise<void>((resolve) => {
@@ -70,15 +32,22 @@ export async function requestNotificationPermission(): Promise<string | null> {
       });
     }
 
-    await navigator.serviceWorker.ready;
+    await sw.ready;
 
-    const { getToken } = await import("firebase/messaging");
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: registration,
+    // Request FCM token from the service worker via MessageChannel
+    const token = await new Promise<string | null>((resolve) => {
+      const channel = new MessageChannel();
+      channel.port1.onmessage = (event) => {
+        resolve(event.data?.token ?? null);
+      };
+      sw.controller?.postMessage({ type: "GET_FCM_TOKEN", vapidKey: VAPID_KEY }, [channel.port2]);
+      setTimeout(() => resolve(null), 10000);
     });
-    console.log("FCM Token:", token);
-    return token ?? null;
+
+    if (token) {
+      console.log("FCM Token:", token);
+    }
+    return token;
   } catch (error) {
     console.error("Notification error:", error);
     return null;
@@ -101,9 +70,21 @@ export async function saveFcmToken(token: string) {
   }
 }
 
-export async function onForegroundMessage(callback: (payload: MessagePayload) => void) {
-  const messaging = await getMessagingSafe();
-  if (!messaging) return () => {};
-  const { onMessage } = await import("firebase/messaging");
-  return onMessage(messaging, callback);
+type ForegroundCallback = (payload: {
+  notification?: { title?: string; body?: string };
+  data?: Record<string, string>;
+}) => void;
+
+export async function onForegroundMessage(callback: ForegroundCallback): Promise<() => void> {
+  const sw = getSw();
+  if (!sw) return () => {};
+
+  const handler = (event: MessageEvent) => {
+    if (event.data?.type === "FCM_FOREGROUND") {
+      callback(event.data.payload);
+    }
+  };
+
+  sw.addEventListener("message", handler);
+  return () => sw.removeEventListener("message", handler);
 }

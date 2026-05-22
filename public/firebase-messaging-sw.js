@@ -12,6 +12,22 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Handle FCM token requests from the client
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "GET_FCM_TOKEN") {
+    const vapidKey = event.data.vapidKey;
+    messaging
+      .getToken({ vapidKey, serviceWorkerRegistration: self.registration })
+      .then((token) => {
+        event.ports[0].postMessage({ token });
+      })
+      .catch((err) => {
+        event.ports[0].postMessage({ token: null });
+        console.error("FCM getToken error in SW:", err);
+      });
+  }
+});
+
 messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title || "Jogo nas Ruas";
   const options = {
@@ -20,7 +36,15 @@ messaging.onBackgroundMessage((payload) => {
     badge: "/icon-192.svg",
     data: payload.data || {},
   };
+
   self.registration.showNotification(title, options);
+
+  // Also forward to any focused clients for in-app toasts
+  self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({ type: "FCM_FOREGROUND", payload });
+    });
+  });
 });
 
 self.addEventListener("notificationclick", (event) => {

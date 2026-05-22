@@ -6,16 +6,16 @@ Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa
 
 ## Stack
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Framework | [TanStack Start](https://tanstack.com/start) (SSR + file-based routing) |
-| Frontend | React 19, TypeScript, Tailwind CSS 4 |
-| Mapas | Leaflet + react-leaflet |
-| Database | Supabase (Postgres) |
-| Auth | Supabase Auth |
-| Push notifications | Firebase Cloud Messaging |
-| Search (lugares) | Google Places API (proxied via Supabase Edge Function) |
-| Deploy | Cloudflare Workers (SSR primário) + Vercel (fallback SPA) |
+| Camada             | Tecnologia                                                              |
+| ------------------ | ----------------------------------------------------------------------- |
+| Framework          | [TanStack Start](https://tanstack.com/start) (SSR + file-based routing) |
+| Frontend           | React 19, TypeScript, Tailwind CSS 4                                    |
+| Mapas              | Leaflet + react-leaflet                                                 |
+| Database           | Supabase (Postgres)                                                     |
+| Auth               | Supabase Auth                                                           |
+| Push notifications | Firebase Cloud Messaging                                                |
+| Search (lugares)   | Google Places API (proxied via Supabase Edge Function)                  |
+| Deploy             | Cloudflare Workers (SSR primário) + Vercel (fallback SPA)               |
 
 ## Começando
 
@@ -32,12 +32,12 @@ bun dev                # → http://localhost:3001
 
 ## Scripts
 
-| Comando | Descrição |
-|---------|-----------|
-| `bun dev` | Servidor de desenvolvimento (porta 3001) |
-| `bun run build` | Build de produção + gera `dist/client/index.html` (Vercel) |
-| `bun run lint` | ESLint |
-| `bun run format` | Prettier (printWidth 100, singleQuote false) |
+| Comando          | Descrição                                                  |
+| ---------------- | ---------------------------------------------------------- |
+| `bun dev`        | Servidor de desenvolvimento (porta 3001)                   |
+| `bun run build`  | Build de produção + gera `dist/client/index.html` (Vercel) |
+| `bun run lint`   | ESLint                                                     |
+| `bun run format` | Prettier (printWidth 100, singleQuote false)               |
 
 ## Estrutura
 
