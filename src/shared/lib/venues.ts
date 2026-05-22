@@ -226,7 +226,12 @@ export function useAddVenue() {
         status: "pending",
         created_by: u.user.id,
       });
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes("violates row-level security")) {
+          throw new Error("Limite de cadastros atingido (máx. 5 por hora). Tente novamente mais tarde.");
+        }
+        throw error;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["venues"] }),
   });
