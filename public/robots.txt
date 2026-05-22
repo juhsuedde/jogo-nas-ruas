@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jogonasruas.lovable.app/sitemap.xml
+Sitemap: https://jogonasruas.vercel.app/sitemap.xml

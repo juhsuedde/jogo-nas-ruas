@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/add")({
   head: () => {
-    const url = "https://jogonasruas.lovable.app/add";
+    const url = "https://jogonasruas.vercel.app/add";
     const title = "Cadastrar local — Jogo nas Ruas";
     const description =
       "Adicione um bar, restaurante ou praça que vai transmitir os jogos da Copa 2026.";

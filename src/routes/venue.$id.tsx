@@ -34,7 +34,7 @@ export const Route = createFileRoute("/venue/$id")({
         }
       | null
       | undefined;
-    const url = `https://jogonasruas.lovable.app/venue/${params.id}`;
+    const url = `https://jogonasruas.vercel.app/venue/${params.id}`;
     const title = v ? `${v.name} em ${v.city_name} | Jogo nas Ruas` : "Local — Jogo nas Ruas";
     const description = v
       ? `Assista aos jogos da Copa 2026 no ${v.name} (${v.address}). Confirme presença e veja quem mais vai.`
@@ -91,7 +91,7 @@ function VenuePage() {
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/venue/${id}`
-      : `https://jogonasruas.lovable.app/venue/${id}`;
+      : `https://jogonasruas.vercel.app/venue/${id}`;
 
   const handleShare = useCallback(() => {
     if (!venue) return;

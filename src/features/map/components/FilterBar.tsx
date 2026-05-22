@@ -10,9 +10,10 @@ export function FilterBar({ filters, options, onToggle }: FilterBarProps) {
       {options.map((f) => (
         <button
           key={f.id}
+          type="button"
           onClick={() => onToggle(f.id)}
           data-active={filters.has(f.id)}
-          className={`chip ${filters.has(f.id) ? "bg-brasil-green text-white border-brasil-green" : ""}`}
+          className={`chip focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brasil-yellow focus-visible:ring-offset-2 ${filters.has(f.id) ? "bg-brasil-green text-white border-brasil-green" : ""}`}
         >
           {f.label}
         </button>

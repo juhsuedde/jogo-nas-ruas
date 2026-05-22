@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => {
-    const url = "https://jogonasruas.lovable.app/";
+    const url = "https://jogonasruas.vercel.app/";
     const title = "Jogo nas Ruas — Mapa da Copa 2026";
     const description =
       "Mapa colaborativo de bares, restaurantes e praças transmitindo os jogos da Copa do Mundo 2026.";
