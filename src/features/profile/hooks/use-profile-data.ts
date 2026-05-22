@@ -54,7 +54,7 @@ async function fetchProfileData(): Promise<ProfileData> {
     };
   }
 
-  const [rsvpsResult, venuesResult, matchesResult] = await Promise.all([
+  const [rsvpsResult, venuesResult, matchesResult, venueCountResult] = await Promise.all([
     supabase
       .from("rsvps")
       .select(
@@ -66,7 +66,7 @@ async function fetchProfileData(): Promise<ProfileData> {
 
     supabase
       .from("venues")
-      .select("id, name, address, verified, rsvps(count)")
+      .select("id, name, address, verified")
       .eq("created_by", user.id)
       .order("created_at", { ascending: false }),
 
@@ -74,6 +74,8 @@ async function fetchProfileData(): Promise<ProfileData> {
       .from("matches")
       .select("id, home_team, away_team, match_date, match_city")
       .order("match_date", { ascending: true }),
+
+    supabase.rpc("get_all_venue_rsvp_counts"),
   ]);
 
   if (rsvpsResult.error) throw rsvpsResult.error;
@@ -83,6 +85,14 @@ async function fetchProfileData(): Promise<ProfileData> {
   const rsvps = rsvpsResult.data || [];
   const venuesCreated = venuesResult.data || [];
   const matches = matchesResult.data || [];
+  const countMap = new Map(
+    (venueCountResult.data ?? []).map((r: { venue_id: string; count: number }) => [r.venue_id, r.count]),
+  );
+
+  const venueList = venuesCreated.map((v) => ({
+    ...v,
+    rsvps: countMap.get(v.id) ?? 0,
+  }));
 
   const matchMap = new Map(matches.map((m) => [m.id, m]));
 
@@ -143,12 +153,12 @@ async function fetchProfileData(): Promise<ProfileData> {
     return new Date(mB?.match_date ?? 0).getTime() - new Date(mA?.match_date ?? 0).getTime();
   });
 
-  const myVenues: ProfileVenue[] = venuesCreated.map((v) => ({
+  const myVenues: ProfileVenue[] = venueList.map((v) => ({
     id: v.id,
     name: v.name,
     address: v.address,
     verified: v.verified ?? false,
-    rsvps: (v as { rsvps?: { count: number }[] }).rsvps?.[0]?.count ?? 0,
+    rsvps: v.rsvps,
   }));
 
   const confirmedCount = rsvps.reduce((acc, r) => acc + (r.guest_count || 1), 0);
@@ -157,7 +167,7 @@ async function fetchProfileData(): Promise<ProfileData> {
   return {
     stats: {
       jogos: pastGamesCount,
-      bares: venuesCreated.length,
+      bares: venueList.length,
       confirmados: confirmedCount,
     },
     upcoming,

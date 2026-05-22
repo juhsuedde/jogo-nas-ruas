@@ -55,23 +55,34 @@ export function useVenues() {
   return useQuery({
     queryKey: ["venues"],
     queryFn: async (): Promise<Venue[]> => {
-      const { data, error } = await supabase
-        .from("venues")
-        .select(
-          `id, name, address, neighborhood, city_name, state, lat, lng,
-          has_big_screen, has_promotion, has_parking, promotions,
-          match_ids, shows_all_matches, verified, status,
-          created_at, rsvps(count)`,
-        )
-        .eq("status", "approved")
-        .order("created_at", { ascending: false });
-      if (error) {
-        throw new Error(`Falha ao carregar locais: ${error.message}`);
+      const [venueResult, countResult] = await Promise.all([
+        supabase
+          .from("venues")
+          .select(
+            `id, name, address, neighborhood, city_name, state, lat, lng,
+            has_big_screen, has_promotion, has_parking, promotions,
+            match_ids, shows_all_matches, verified, status,
+            created_at`,
+          )
+          .eq("status", "approved")
+          .order("created_at", { ascending: false }),
+        supabase.rpc("get_all_venue_rsvp_counts"),
+      ]);
+
+      if (venueResult.error) {
+        throw new Error(`Falha ao carregar locais: ${venueResult.error.message}`);
       }
-      if (!data || data.length === 0) {
+      if (!venueResult.data || venueResult.data.length === 0) {
         return [];
       }
-      return (data as VenueRow[]).map((r) => rowToVenue(r));
+
+      const countMap = new Map(
+        (countResult.data ?? []).map((r: { venue_id: string; count: number }) => [r.venue_id, r.count]),
+      );
+
+      return (venueResult.data as VenueRow[]).map((r) =>
+        rowToVenue({ ...r, rsvps: [{ count: countMap.get(r.id) ?? 0 }] }),
+      );
     },
     staleTime: 30_000,
   });
@@ -87,7 +98,7 @@ export function useVenue(id: string, userId?: string) {
           `id, name, address, neighborhood, city_name, state, lat, lng,
           has_big_screen, has_promotion, has_parking, promotions,
           match_ids, shows_all_matches, verified, status,
-          created_at, rsvps(count)`,
+          created_at`,
         )
         .eq("id", id);
 
@@ -97,14 +108,20 @@ export function useVenue(id: string, userId?: string) {
         q.eq("status", "approved");
       }
 
-      const { data, error } = await q.maybeSingle();
-      if (error) {
-        throw new Error(`Falha ao carregar local: ${error.message}`);
+      const [venueResult, countResult] = await Promise.all([
+        q.maybeSingle(),
+        supabase.rpc("get_venue_rsvp_count", { venue_id: id }),
+      ]);
+
+      if (venueResult.error) {
+        throw new Error(`Falha ao carregar local: ${venueResult.error.message}`);
       }
-      if (!data) {
+      if (!venueResult.data) {
         return null;
       }
-      return rowToVenue(data as VenueRow);
+      const data = venueResult.data as VenueRow;
+      data.rsvps = [{ count: (countResult.data as number) ?? 0 }];
+      return rowToVenue(data);
     },
   });
 }
