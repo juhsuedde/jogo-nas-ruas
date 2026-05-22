@@ -231,7 +231,7 @@ function MapaPage() {
   const mapZoom = userLocation ? getZoomForRadius(radius) : undefined;
 
   return (
-    <div className="h-full flex flex-col relative">
+    <div className="h-full flex flex-col lg:flex-row relative">
       {/* Map */}
       <div className="flex-1 relative" onClick={() => setIsBottomSheetMinimized(true)}>
         <ClientOnly>
@@ -320,33 +320,66 @@ function MapaPage() {
         <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
       </div>
 
-      {/* Venue list bottom sheet */}
-      <BottomSheet
-        minimized={isBottomSheetMinimized}
-        onToggle={() => setIsBottomSheetMinimized(!isBottomSheetMinimized)}
-        locationButton={<LocationButton onClick={centerOnUser} isLocating={isLocating} />}
-        radiusSelector={
-          userLocation ? (
+      {/* Mobile: Bottom sheet */}
+      <div className="block lg:hidden">
+        <BottomSheet
+          minimized={isBottomSheetMinimized}
+          onToggle={() => setIsBottomSheetMinimized(!isBottomSheetMinimized)}
+          locationButton={<LocationButton onClick={centerOnUser} isLocating={isLocating} />}
+          radiusSelector={
+            userLocation ? (
+              <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
+            ) : undefined
+          }
+        >
+          <div className="pb-2">
+            <h2 className="font-display text-lg text-brasil-navy mb-1">onde a galera tá</h2>
+            {venues.length > 0 && (
+              <p className="text-sm text-muted-foreground mb-3">{venues.length} locais</p>
+            )}
+          </div>
+          <VenueList
+            venues={venues}
+            loading={loading}
+            activeId={activeId}
+            onSelect={(id) => {
+              setActive(id);
+              navigate({ to: "/venue/$id", params: { id } });
+            }}
+          />
+        </BottomSheet>
+      </div>
+
+      {/* Desktop: Sidebar */}
+      <div className="hidden lg:flex w-96 shrink-0 border-l border-brasil-navy/20 bg-card flex-col overflow-hidden">
+        <div className="p-4 border-b border-brasil-navy/10 space-y-3">
+          <div className="flex items-center gap-2 bg-brasil-navy text-white rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider w-fit">
+            <span>⚽</span>
+            <span>JOGO NAS RUAS</span>
+            <span className="text-brasil-yellow">· copa 2026</span>
+          </div>
+
+          <div className="flex items-center justify-between">
             <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
-          ) : undefined
-        }
-      >
-        <div className="pb-2">
-          <h2 className="font-display text-lg text-brasil-navy mb-1">onde a galera tá</h2>
-          {venues.length > 0 && (
-            <p className="text-sm text-muted-foreground mb-3">{venues.length} locais</p>
-          )}
+            <LocationButton onClick={centerOnUser} isLocating={isLocating} />
+          </div>
+
+          <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
+
+          <p className="text-sm text-muted-foreground">{venues.length} locais</p>
         </div>
-        <VenueList
-          venues={venues}
-          loading={loading}
-          activeId={activeId}
-          onSelect={(id) => {
-            setActive(id);
-            navigate({ to: "/venue/$id", params: { id } });
-          }}
-        />
-      </BottomSheet>
+        <div className="flex-1 overflow-y-auto px-4 pb-4">
+          <VenueList
+            venues={venues}
+            loading={loading}
+            activeId={activeId}
+            onSelect={(id) => {
+              setActive(id);
+              navigate({ to: "/venue/$id", params: { id } });
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }
