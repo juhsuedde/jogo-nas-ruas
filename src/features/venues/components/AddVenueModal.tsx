@@ -231,9 +231,9 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   }
 
   return (
-    <div className="fixed inset-0 z-[701] bg-brasil-cream grid grid-rows-[1fr_auto] overflow-hidden">
+    <div className="min-h-full bg-brasil-cream flex flex-col pb-24">
       {/* ─── Scrollable content ─────────────────────────────────────────── */}
-      <div className="overflow-y-auto min-h-0">
+      <div className="flex-1">
         <div className="max-w-md mx-auto px-4 pt-5 pb-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -490,7 +490,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
       </div>
 
       {/* ─── Fixed footer (botões) ────────────────────────────────────── */}
-      <div className="border-t border-brasil-navy/10 bg-brasil-cream/95 backdrop-blur-sm z-10">
+      <div className="shrink-0 border-t border-brasil-navy/10 bg-brasil-cream">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
           {step > 1 && (
             <Button
