@@ -332,7 +332,9 @@ function MapaPage() {
       >
         <div className="pb-2">
           <h2 className="font-display text-lg text-brasil-navy mb-1">onde a galera tá</h2>
-          <p className="text-sm text-muted-foreground mb-3">{venues.length} locais</p>
+          {venues.length > 0 && (
+            <p className="text-sm text-muted-foreground mb-3">{venues.length} locais</p>
+          )}
         </div>
         <VenueList
           venues={venues}
