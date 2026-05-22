@@ -237,10 +237,10 @@ function MapaPage() {
         <ClientOnly>
           <Suspense
             fallback={
-              <div className="h-full flex items-center justify-center bg-brasil-cream">
+              <div className="h-full bg-brasil-navy/5 animate-pulse flex items-center justify-center">
                 <div className="text-center">
-                  <Loader2 className="size-8 text-brasil-navy animate-spin mx-auto mb-2" />
-                  <p className="text-sm text-brasil-navy/60">carregando mapa...</p>
+                  <div className="size-20 mx-auto mb-3 rounded-xl bg-brasil-navy/10" />
+                  <div className="h-3 w-40 mx-auto rounded bg-brasil-navy/10" />
                 </div>
               </div>
             }
@@ -255,6 +255,7 @@ function MapaPage() {
               onFlyTo={(fn) => {
                 flyToFnRef.current = fn;
               }}
+              loading={loading}
             />
           </Suspense>
         </ClientOnly>

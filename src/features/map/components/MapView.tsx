@@ -86,6 +86,7 @@ interface MapViewProps {
   zoom?: number;
   selectedPlace?: { lat: number; lng: number; name: string } | null;
   onFlyTo?: (fn: (lat: number, lng: number, zoom?: number) => void) => void;
+  loading?: boolean;
 }
 
 function MapViewComponent({
@@ -96,38 +97,49 @@ function MapViewComponent({
   zoom,
   selectedPlace,
   onFlyTo,
+  loading,
 }: MapViewProps) {
   const active = venues.find((v) => v.id === activeId);
 
   return (
-    <MapContainer
-      center={center ?? [-14.235, -51.925]}
-      zoom={zoom ?? 4}
-      zoomControl={false}
-      className="absolute inset-0 h-full w-full"
-      scrollWheelZoom={false}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attribution">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-      />
-      <MapController center={center} zoom={zoom} activeId={activeId} onFlyTo={onFlyTo} />
-      {venues.map((v) => (
-        <Marker
-          key={v.id}
-          position={[v.lat, v.lng]}
-          icon={v.id === activeId ? activeIcon : greenIcon}
-          eventHandlers={{ click: () => onSelect(v.id) }}
+    <div className="absolute inset-0">
+      {loading && (
+        <div className="absolute inset-0 z-[1000] bg-brasil-navy/5 animate-pulse flex items-center justify-center">
+          <div className="text-center">
+            <div className="size-20 mx-auto mb-3 rounded-xl bg-brasil-navy/10" />
+            <div className="h-3 w-40 mx-auto rounded bg-brasil-navy/10" />
+          </div>
+        </div>
+      )}
+      <MapContainer
+        center={center ?? [-14.235, -51.925]}
+        zoom={zoom ?? 4}
+        zoomControl={false}
+        className="absolute inset-0 h-full w-full"
+        scrollWheelZoom={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attribution">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
-      ))}
-      {selectedPlace && selectedPlace.lat !== 0 && (
-        <Marker position={[selectedPlace.lat, selectedPlace.lng]} icon={searchIcon} />
-      )}
-      {active && <FlyTo lat={active.lat} lng={active.lng} />}
-      {selectedPlace && selectedPlace.lat !== 0 && (
-        <FlyTo lat={selectedPlace.lat} lng={selectedPlace.lng} />
-      )}
-    </MapContainer>
+        <MapController center={center} zoom={zoom} activeId={activeId} onFlyTo={onFlyTo} />
+        {venues.map((v) => (
+          <Marker
+            key={v.id}
+            position={[v.lat, v.lng]}
+            icon={v.id === activeId ? activeIcon : greenIcon}
+            eventHandlers={{ click: () => onSelect(v.id) }}
+          />
+        ))}
+        {selectedPlace && selectedPlace.lat !== 0 && (
+          <Marker position={[selectedPlace.lat, selectedPlace.lng]} icon={searchIcon} />
+        )}
+        {active && <FlyTo lat={active.lat} lng={active.lng} />}
+        {selectedPlace && selectedPlace.lat !== 0 && (
+          <FlyTo lat={selectedPlace.lat} lng={selectedPlace.lng} />
+        )}
+      </MapContainer>
+    </div>
   );
 }
 
