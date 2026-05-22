@@ -441,11 +441,11 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
 
           {/* ─── STEP 3 ───────────────────────────────────────────────────── */}
           {step === 3 && (
-            <div className="space-y-5">
+            <div className="space-y-3">
               <p className="text-sm text-brasil-navy/70">
                 Escolha um ou mais. Dá pra editar depois.
               </p>
-              <div className="space-y-2">
+              <div className="space-y-2 overflow-y-auto" style={{ maxHeight: "calc(100dvh - 300px)" }}>
                 {matchesLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="size-6 text-brasil-navy animate-spin" />
@@ -490,7 +490,7 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
       </div>
 
       {/* ─── Fixed footer (botões) ────────────────────────────────────── */}
-      <div className="shrink-0 border-t border-brasil-navy/10 bg-brasil-cream">
+      <div className="sticky bottom-0 shrink-0 border-t border-brasil-navy/10 bg-brasil-cream">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
           {step > 1 && (
             <Button
