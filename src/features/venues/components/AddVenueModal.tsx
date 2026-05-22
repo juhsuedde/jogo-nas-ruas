@@ -231,9 +231,9 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-brasil-cream grid grid-rows-[1fr_auto] overflow-hidden">
+    <div className="fixed inset-0 z-[701] bg-brasil-cream grid grid-rows-[1fr_auto] overflow-hidden">
       {/* ─── Scrollable content ─────────────────────────────────────────── */}
-      <div className="overflow-y-auto">
+      <div className="overflow-y-auto min-h-0">
         <div className="max-w-md mx-auto px-4 pt-5 pb-4">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
