@@ -3,39 +3,31 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Venue } from "@/features/venues/hooks/useVenues";
 
-const greenIcon = L.divIcon({
-  className: "",
-  html: `<div style="
-    width:36px;height:36px;border-radius:50% 50% 50% 0;
-    background:oklch(0.58 0.16 145);
-    border:2.5px solid oklch(0.32 0.13 265);
+function createVenueIcon(name: string, isActive: boolean) {
+  const size = isActive ? 46 : 36;
+  const bg = isActive ? "oklch(0.88 0.18 95)" : "oklch(0.58 0.16 145)";
+  const ballColor = isActive ? "oklch(0.32 0.13 265)" : "oklch(0.88 0.18 95)";
+  const fontSize = isActive ? 22 : 18;
+  return L.divIcon({
+    className: "",
+    html: `<div role="img" aria-label="${name}" style="
+    width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;
+    background:${bg};
+    border:${isActive ? 3 : 2.5}px solid oklch(0.32 0.13 265);
     transform:rotate(-45deg);
-    box-shadow:2px 2px 0 oklch(0.32 0.13 265);
+    box-shadow:${isActive ? 3 : 2}px ${isActive ? 3 : 2}px 0 oklch(0.32 0.13 265);
     display:flex;align-items:center;justify-content:center;">
-    <div style="transform:rotate(45deg);color:oklch(0.88 0.18 95);font-weight:900;font-size:18px;">⚽</div>
+    <div style="transform:rotate(45deg);color:${ballColor};font-weight:900;font-size:${fontSize}px;">⚽</div>
   </div>`,
-  iconSize: [36, 36],
-  iconAnchor: [18, 36],
-});
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+  });
+}
 
-const activeIcon = L.divIcon({
-  className: "",
-  html: `<div style="
-    width:46px;height:46px;border-radius:50% 50% 50% 0;
-    background:oklch(0.88 0.18 95);
-    border:3px solid oklch(0.32 0.13 265);
-    transform:rotate(-45deg);
-    box-shadow:3px 3px 0 oklch(0.32 0.13 265);
-    display:flex;align-items:center;justify-content:center;">
-    <div style="transform:rotate(45deg);color:oklch(0.32 0.13 265);font-weight:900;font-size:22px;">⚽</div>
-  </div>`,
-  iconSize: [46, 46],
-  iconAnchor: [23, 46],
-});
-
-const searchIcon = L.divIcon({
-  className: "",
-  html: `<div style="
+const searchIcon = (name: string) =>
+  L.divIcon({
+    className: "",
+    html: `<div role="img" aria-label="${name}" style="
     width:40px;height:40px;border-radius:50% 50% 50% 0;
     background:#FFDF00;
     border:3px solid #0A2540;
@@ -44,9 +36,9 @@ const searchIcon = L.divIcon({
     display:flex;align-items:center;justify-content:center;">
     <div style="transform:rotate(45deg);color:#0A2540;font-weight:900;font-size:20px;">📍</div>
   </div>`,
-  iconSize: [40, 40],
-  iconAnchor: [20, 40],
-});
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+  });
 
 function FlyTo({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
@@ -127,12 +119,15 @@ function MapViewComponent({
           <Marker
             key={v.id}
             position={[v.lat, v.lng]}
-            icon={v.id === activeId ? activeIcon : greenIcon}
+            icon={createVenueIcon(v.name, v.id === activeId)}
             eventHandlers={{ click: () => onSelect(v.id) }}
           />
         ))}
         {selectedPlace && selectedPlace.lat !== 0 && (
-          <Marker position={[selectedPlace.lat, selectedPlace.lng]} icon={searchIcon} />
+          <Marker
+            position={[selectedPlace.lat, selectedPlace.lng]}
+            icon={searchIcon(selectedPlace.name)}
+          />
         )}
         {active && <FlyTo lat={active.lat} lng={active.lng} />}
         {selectedPlace && selectedPlace.lat !== 0 && (
