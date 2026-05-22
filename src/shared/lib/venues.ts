@@ -225,29 +225,47 @@ export function useAddVenue() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Faça login para cadastrar um local.");
 
-      const { error } = await supabase.from("venues").insert({
-        name: input.name,
-        address: input.address,
-        neighborhood: input.neighborhood || null,
-        city_name: input.city,
-        state: input.state || "SP",
-        lat: input.lat,
-        lng: input.lng,
-        has_big_screen: input.hasBigScreen,
-        has_promotion: input.hasPromotion,
-        has_parking: input.hasParking,
-        promotions: input.promotions || null,
-        match_ids: input.matchIds || [],
-        shows_all_matches: input.showsAllMatches ?? false,
-        verified: false,
-        status: "pending",
-        created_by: u.user.id,
-      });
+      const { data, error } = await supabase
+        .from("venues")
+        .insert({
+          name: input.name,
+          address: input.address,
+          neighborhood: input.neighborhood || null,
+          city_name: input.city,
+          state: input.state || "SP",
+          lat: input.lat,
+          lng: input.lng,
+          has_big_screen: input.hasBigScreen,
+          has_promotion: input.hasPromotion,
+          has_parking: input.hasParking,
+          promotions: input.promotions || null,
+          match_ids: [],
+          shows_all_matches: input.showsAllMatches ?? false,
+          verified: false,
+          status: "pending",
+          created_by: u.user.id,
+        })
+        .select("id")
+        .single();
+
       if (error) {
         if (error.message?.includes("violates row-level security")) {
           throw new Error("Limite de cadastros atingido (máx. 5 por hora). Tente novamente mais tarde.");
         }
         throw error;
+      }
+
+      const venueId = data.id;
+
+      // Insert into normalized venue_matches junction table
+      if (input.matchIds && input.matchIds.length > 0) {
+        const { error: matchError } = await supabase.rpc("add_venue_matches", {
+          p_venue_id: venueId,
+          p_match_ids: input.matchIds,
+        });
+        if (matchError) {
+          console.error("Failed to link matches:", matchError);
+        }
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["venues"] }),
