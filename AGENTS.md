@@ -30,10 +30,11 @@ bun run format       # Prettier (printWidth 100, singleQuote false)
 
 ## Key Constraints
 
-- `.env` is committed to git (required for Vercel builds). Contains `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and Firebase env vars (`VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_SENDER_ID`, `VITE_FIREBASE_APP_ID`, `VITE_FIREBASE_VAPID_KEY`).
+- `public/firebase-messaging-sw.js` has Firebase config hardcoded (required for SW scope).
 - Supabase project: `nemrqkkuptdikiqqgaho`
 - Edge function URL: `https://nemrqkkuptdikiqqgaho.supabase.co/functions/v1/google-places`
 - Package manager is Bun. Do not commit `bun.lock`.
+- **NEVER commit `.env` or `.env.*` files.** Set env vars via Vercel/Cloudflare dashboard. Use `.env.example` as template.
 
 ## Architecture Notes
 

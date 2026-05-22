@@ -22,10 +22,10 @@ dist-ssr
 .wrangler/
 .dev.vars
 
-# Environment variables (local/dev only — .env is committed for production)
-.env.local
-.env.development
-.env.*.local
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*
