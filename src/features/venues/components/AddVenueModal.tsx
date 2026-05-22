@@ -251,277 +251,284 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-brasil-cream">
-      <div className="max-w-md mx-auto px-4 pt-5 pb-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={() => onOpenChange(false)}
-            className="size-10 rounded-full bg-white handmade-border flex items-center justify-center hover:bg-brasil-yellow/30 transition-colors"
-            aria-label="Fechar"
-          >
-            <X className="size-4 text-brasil-navy" />
-          </button>
-          <h1 className="font-display text-base text-brasil-navy tracking-wider">
-            {step === 1 && "Cadastrar Local"}
-            {step === 2 && "Conta pra Gente"}
-            {step === 3 && "Quais Jogos?"}
-          </h1>
-          <div className="size-10" />
-        </div>
-
-        {/* Step indicator */}
-        <div className="flex items-center gap-2 mb-6">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`h-2 flex-1 rounded-full transition-colors ${
-                s <= step ? "bg-brasil-green" : "bg-brasil-navy/20"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* ─── STEP 1: Localização ─────────────────────────────────────────── */}
-        {step === 1 && (
-          <div className="space-y-4">
-            <p className="text-sm text-brasil-navy/70">
-              Busque o endereço do local. Selecione o resultado correto.
-            </p>
-
-            {/* Search input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brasil-navy/40" />
-              <Input
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setAddress(null);
-                }}
-                placeholder="Digite rua, número, bairro…"
-                className="pl-10 rounded-xl border-2 border-brasil-navy/30 focus:border-brasil-green"
-              />
-            </div>
-
-            {/* Suggestions */}
-            {!address && query.length > 0 && (
-              <div className="space-y-2">
-                {isSearching && (
-                  <div className="flex items-center gap-2 text-sm text-brasil-navy/60 py-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Buscando...
-                  </div>
-                )}
-                {!isSearching && placeSuggestions.length > 0 && (
-                  <div className="border rounded-xl overflow-hidden border-brasil-navy/20">
-                    {placeSuggestions.map((s) => (
-                      <button
-                        key={s.placeId}
-                        onClick={() => handleSelectPlace(s)}
-                        className="w-full text-left px-4 py-3 hover:bg-brasil-green/10 transition-colors flex items-start gap-3 border-b last:border-b-0 border-brasil-navy/10"
-                      >
-                        <MapPin className="w-4 h-4 mt-0.5 text-brasil-green shrink-0" />
-                        <div>
-                          <p className="font-medium text-brasil-navy text-sm">{s.title}</p>
-                          <p className="text-xs text-brasil-navy/60">{s.subtitle}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {!isSearching && placeSuggestions.length === 0 && query.length >= 2 && (
-                  <p className="text-sm text-brasil-navy/50 py-2">
-                    Digite o nome de um bar, restaurante ou café…
-                  </p>
-                )}
-                {searchError && <p className="text-sm text-red-500 py-2">{searchError}</p>}
-              </div>
-            )}
-
-            {/* Selected address card */}
-            {address && (
-              <div className="rounded-xl border-2 border-brasil-green/40 bg-brasil-green/5 p-4 space-y-3">
-                {isLoadingDetails ? (
-                  <div className="flex items-center gap-2 text-sm text-brasil-navy/60">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Carregando detalhes…
-                  </div>
-                ) : (
-                  <>
-                    <div className="relative aspect-video rounded-lg overflow-hidden border border-brasil-navy/10 bg-brasil-cream">
-                      {googlePlace?.photoUrl && !photoError ? (
-                        <>
-                          <img
-                            src={googlePlace.photoUrl}
-                            alt={address.title}
-                            className="w-full h-full object-cover"
-                            onError={() => setPhotoError(true)}
-                          />
-                          {googlePlace.rating && (
-                            <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold text-brasil-navy shadow-sm">
-                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                              {googlePlace.rating.toFixed(1)}
-                            </div>
-                          )}
-                        </>
-                      ) : address?.lat &&
-                        address?.lng &&
-                        (address.lat !== 0 || address.lng !== 0) ? (
-                        <MiniMap lat={address.lat} lng={address.lng} title={address.title} />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-brasil-navy/5 to-brasil-green/10">
-                          <MapPin className="w-8 h-8 text-brasil-navy/30" />
-                          <span className="text-xs text-brasil-navy/50 font-medium">
-                            {address.title}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div>
-                      <p className="font-bold text-brasil-navy">{address.title}</p>
-                      <p className="text-sm text-brasil-navy/70">{address.subtitle}</p>
-                      {googlePlace && (
-                        <p className="text-xs text-brasil-green mt-1 flex items-center gap-1">
-                          <Star className="w-3 h-3" />
-                          Dados confirmados pelo Google Maps
-                        </p>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
+    <div className="absolute inset-0 flex flex-col bg-brasil-cream">
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="max-w-md mx-auto px-4 pt-5 pb-4">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="size-10 rounded-full bg-white handmade-border flex items-center justify-center hover:bg-brasil-yellow/30 transition-colors"
+              aria-label="Fechar"
+            >
+              <X className="size-4 text-brasil-navy" />
+            </button>
+            <h1 className="font-display text-base text-brasil-navy tracking-wider">
+              {step === 1 && "Cadastrar Local"}
+              {step === 2 && "Conta pra Gente"}
+              {step === 3 && "Quais Jogos?"}
+            </h1>
+            <div className="size-10" />
           </div>
-        )}
 
-        {/* ─── STEP 2: Informações do local ────────────────────────────────── */}
-        {step === 2 && (
-          <div className="space-y-5">
-            <p className="text-sm text-brasil-navy/70">Nome, endereço e o que rola por lá</p>
-
-            {/* Name — preenchido automaticamente, mas editável */}
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="venue-name"
-                className="text-brasil-navy font-semibold text-sm uppercase tracking-wide"
-              >
-                Nome do Local
-              </Label>
-              <Input
-                id="venue-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Boteco do Zé"
-                className="rounded-xl border-2 border-brasil-navy/30 bg-background px-3 py-2.5 focus:border-brasil-green outline-none"
+          {/* Step indicator */}
+          <div className="flex items-center gap-2 mb-6">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={`h-2 flex-1 rounded-full transition-colors ${
+                  s <= step ? "bg-brasil-green" : "bg-brasil-navy/20"
+                }`}
               />
-              {googlePlace?.name && name !== googlePlace.name && (
-                <button
-                  onClick={() => setName(googlePlace.name || "")}
-                  className="text-xs text-brasil-green hover:underline"
-                >
-                  Restaurar nome original: {googlePlace.name}
-                </button>
+            ))}
+          </div>
+
+          {/* ─── STEP 1: Localização ─────────────────────────────────────────── */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <p className="text-sm text-brasil-navy/70">
+                Busque o endereço do local. Selecione o resultado correto.
+              </p>
+
+              {/* Search input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brasil-navy/40" />
+                <Input
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setAddress(null);
+                  }}
+                  placeholder="Digite rua, número, bairro…"
+                  className="pl-10 rounded-xl border-2 border-brasil-navy/30 focus:border-brasil-green"
+                />
+              </div>
+
+              {/* Suggestions */}
+              {!address && query.length > 0 && (
+                <div className="space-y-2">
+                  {isSearching && (
+                    <div className="flex items-center gap-2 text-sm text-brasil-navy/60 py-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Buscando...
+                    </div>
+                  )}
+                  {!isSearching && placeSuggestions.length > 0 && (
+                    <div className="border rounded-xl overflow-hidden border-brasil-navy/20">
+                      {placeSuggestions.map((s) => (
+                        <button
+                          key={s.placeId}
+                          onClick={() => handleSelectPlace(s)}
+                          className="w-full text-left px-4 py-3 hover:bg-brasil-green/10 transition-colors flex items-start gap-3 border-b last:border-b-0 border-brasil-navy/10"
+                        >
+                          <MapPin className="w-4 h-4 mt-0.5 text-brasil-green shrink-0" />
+                          <div>
+                            <p className="font-medium text-brasil-navy text-sm">{s.title}</p>
+                            <p className="text-xs text-brasil-navy/60">{s.subtitle}</p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {!isSearching && placeSuggestions.length === 0 && query.length >= 2 && (
+                    <p className="text-sm text-brasil-navy/50 py-2">
+                      Digite o nome de um bar, restaurante ou café…
+                    </p>
+                  )}
+                  {searchError && <p className="text-sm text-red-500 py-2">{searchError}</p>}
+                </div>
+              )}
+
+              {/* Selected address card */}
+              {address && (
+                <div className="rounded-xl border-2 border-brasil-green/40 bg-brasil-green/5 p-4 space-y-3">
+                  {isLoadingDetails ? (
+                    <div className="flex items-center gap-2 text-sm text-brasil-navy/60">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Carregando detalhes…
+                    </div>
+                  ) : (
+                    <>
+                      <div className="relative aspect-video rounded-lg overflow-hidden border border-brasil-navy/10 bg-brasil-cream">
+                        {googlePlace?.photoUrl && !photoError ? (
+                          <>
+                            <img
+                              src={googlePlace.photoUrl}
+                              alt={address.title}
+                              className="w-full h-full object-cover"
+                              onError={() => setPhotoError(true)}
+                            />
+                            {googlePlace.rating && (
+                              <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold text-brasil-navy shadow-sm">
+                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                {googlePlace.rating.toFixed(1)}
+                              </div>
+                            )}
+                          </>
+                        ) : address?.lat &&
+                          address?.lng &&
+                          (address.lat !== 0 || address.lng !== 0) ? (
+                          <MiniMap lat={address.lat} lng={address.lng} title={address.title} />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-brasil-navy/5 to-brasil-green/10">
+                            <MapPin className="w-8 h-8 text-brasil-navy/30" />
+                            <span className="text-xs text-brasil-navy/50 font-medium">
+                              {address.title}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="font-bold text-brasil-navy">{address.title}</p>
+                        <p className="text-sm text-brasil-navy/70">{address.subtitle}</p>
+                        {googlePlace && (
+                          <p className="text-xs text-brasil-green mt-1 flex items-center gap-1">
+                            <Star className="w-3 h-3" />
+                            Dados confirmados pelo Google Maps
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
+          )}
 
-            {/* Address — read-only, vem do Google */}
-            <div className="space-y-1.5">
-              <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
-                Endereço
-              </Label>
-              <div className="rounded-xl border-2 border-brasil-navy/20 bg-brasil-navy/5 px-3 py-2.5 text-sm text-brasil-navy/80">
-                <p className="font-medium">{address?.title}</p>
-                <p>{address?.subtitle}</p>
+          {/* ─── STEP 2: Informações do local ────────────────────────────────── */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <p className="text-sm text-brasil-navy/70">Nome, endereço e o que rola por lá</p>
+
+              {/* Name — preenchido automaticamente, mas editável */}
+              <div className="space-y-1.5">
+                <Label
+                  htmlFor="venue-name"
+                  className="text-brasil-navy font-semibold text-sm uppercase tracking-wide"
+                >
+                  Nome do Local
+                </Label>
+                <Input
+                  id="venue-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Boteco do Zé"
+                  className="rounded-xl border-2 border-brasil-navy/30 bg-background px-3 py-2.5 focus:border-brasil-green outline-none"
+                />
+                {googlePlace?.name && name !== googlePlace.name && (
+                  <button
+                    onClick={() => setName(googlePlace.name || "")}
+                    className="text-xs text-brasil-green hover:underline"
+                  >
+                    Restaurar nome original: {googlePlace.name}
+                  </button>
+                )}
               </div>
-            </div>
 
-            {/* Perks */}
-            <div className="space-y-2">
-              <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
-                O que tem no local?
-              </Label>
+              {/* Address — read-only, vem do Google */}
+              <div className="space-y-1.5">
+                <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
+                  Endereço
+                </Label>
+                <div className="rounded-xl border-2 border-brasil-navy/20 bg-brasil-navy/5 px-3 py-2.5 text-sm text-brasil-navy/80">
+                  <p className="font-medium">{address?.title}</p>
+                  <p>{address?.subtitle}</p>
+                </div>
+              </div>
+
+              {/* Perks */}
               <div className="space-y-2">
-                {PERKS.map((p) => {
-                  const Icon = p.icon;
-                  const active = perks.has(p.id);
-                  return (
-                    <button
-                      key={p.id}
-                      onClick={() => togglePerk(p.id)}
-                      className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
-                        active
-                          ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
-                          : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
-                      }`}
-                    >
-                      <span className="flex items-center gap-3 text-sm font-medium">
-                        <Icon className="w-5 h-5" />
-                        {p.label}
-                      </span>
-                      <div
-                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                          active ? "border-brasil-green bg-brasil-green" : "border-brasil-navy/30"
+                <Label className="text-brasil-navy font-semibold text-sm uppercase tracking-wide">
+                  O que tem no local?
+                </Label>
+                <div className="space-y-2">
+                  {PERKS.map((p) => {
+                    const Icon = p.icon;
+                    const active = perks.has(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => togglePerk(p.id)}
+                        className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
+                          active
+                            ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
+                            : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
                         }`}
                       >
-                        {active && <span className="text-white text-xs">✓</span>}
-                      </div>
-                    </button>
-                  );
-                })}
+                        <span className="flex items-center gap-3 text-sm font-medium">
+                          <Icon className="w-5 h-5" />
+                          {p.label}
+                        </span>
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                            active ? "border-brasil-green bg-brasil-green" : "border-brasil-navy/30"
+                          }`}
+                        >
+                          {active && <span className="text-white text-xs">✓</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* ─── STEP 3: Jogos ──────────────────────────────────────────────── */}
-        {step === 3 && (
-          <div className="space-y-5">
-            <p className="text-sm text-brasil-navy/70">Escolha um ou mais. Dá pra editar depois.</p>
-            <div className="space-y-2">
-              {matchesLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="size-6 text-brasil-navy animate-spin" />
-                </div>
-              ) : dbMatches.length === 0 ? (
-                <p className="text-sm text-brasil-navy/50 text-center py-4">
-                  Nenhum jogo disponível
-                </p>
-              ) : (
-                dbMatches.map((m) => {
-                  const active = matches.has(m.id);
-                  return (
-                    <button
-                      key={m.id}
-                      onClick={() => toggleMatch(m.id)}
-                      className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
-                        active
-                          ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
-                          : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
-                      }`}
-                    >
-                      <span className="text-sm font-medium">
-                        {m.match_name}
-                        <span className="text-xs text-brasil-navy/50 ml-2">
-                          {new Date(m.match_date).toLocaleDateString("pt-BR", {
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+          {/* ─── STEP 3: Jogos ──────────────────────────────────────────────── */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <p className="text-sm text-brasil-navy/70">
+                Escolha um ou mais. Dá pra editar depois.
+              </p>
+              <div className="space-y-2">
+                {matchesLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="size-6 text-brasil-navy animate-spin" />
+                  </div>
+                ) : dbMatches.length === 0 ? (
+                  <p className="text-sm text-brasil-navy/50 text-center py-4">
+                    Nenhum jogo disponível
+                  </p>
+                ) : (
+                  dbMatches.map((m) => {
+                    const active = matches.has(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => toggleMatch(m.id)}
+                        className={`w-full flex items-center justify-between rounded-xl border-2 px-4 py-3 transition-all ${
+                          active
+                            ? "border-brasil-green bg-brasil-green/10 text-brasil-navy"
+                            : "border-brasil-navy/20 bg-white text-brasil-navy/70 hover:border-brasil-navy/40"
+                        }`}
+                      >
+                        <span className="text-sm font-medium">
+                          {m.match_name}
+                          <span className="text-xs text-brasil-navy/50 ml-2">
+                            {new Date(m.match_date).toLocaleDateString("pt-BR", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
                         </span>
-                      </span>
-                      <Checkbox checked={active} />
-                    </button>
-                  );
-                })
-              )}
+                        <Checkbox checked={active} />
+                      </button>
+                    );
+                  })
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+      </div>
 
-        {/* ─── Footer buttons ─────────────────────────────────────────────── */}
-        <div className="pt-6 flex items-center gap-3">
+      {/* ─── Fixed Footer buttons ───────────────────────────────────────── */}
+      <div className="shrink-0 border-t border-brasil-navy/10 bg-brasil-cream/95 backdrop-blur-sm z-10">
+        <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
           {step > 1 && (
             <Button
               onClick={handleBack}
