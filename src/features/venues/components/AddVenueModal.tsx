@@ -203,12 +203,12 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
         toast.error("Selecione um local");
         return;
       }
+      setStep(2);
+    } else if (step === 2) {
       if (!name.trim()) {
         toast.error("Nome do local é obrigatório");
         return;
       }
-      setStep(2);
-    } else if (step === 2) {
       setStep(3);
     }
   }
@@ -500,21 +500,21 @@ export function AddVenueModal({ open, onOpenChange, onSubmit }: AddVenueModalPro
               Voltar
             </Button>
           )}
-          {step < 3 ? (
+          {step < 3 && (step > 1 || address) ? (
             <Button
               onClick={handleNext}
               className="flex-1 rounded-xl bg-brasil-green hover:bg-brasil-green/90 text-white font-bold uppercase tracking-wider"
             >
               Próximo
             </Button>
-          ) : (
+          ) : step === 3 ? (
             <Button
               onClick={handleSubmit}
               className="flex-1 rounded-xl bg-brasil-green hover:bg-brasil-green/90 text-white font-bold uppercase tracking-wider"
             >
               Cadastrar
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
