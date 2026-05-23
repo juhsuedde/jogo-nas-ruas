@@ -51,6 +51,9 @@ coverage
 # Lovable
 .lovable
 
+# Bundle analyzer output
+stats.html
+
 # TypeScript
 *.tsbuildinfo
 supabase/.temp
