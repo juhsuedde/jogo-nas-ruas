@@ -19,6 +19,9 @@ type VenueRow = {
   shows_all_matches: boolean;
   verified: boolean;
   status: string;
+  claimed_by: string | null;
+  sponsored: boolean;
+  sponsored_until: string | null;
   rsvps?: { count: number }[];
 };
 
@@ -48,6 +51,9 @@ function rowToVenue(r: VenueRow): Venue {
     showsAllMatches: r.shows_all_matches,
     verified: r.verified,
     status: r.status,
+    claimed_by: r.claimed_by,
+    sponsored: r.sponsored,
+    sponsored_until: r.sponsored_until,
   };
 }
 
@@ -55,17 +61,27 @@ export function useVenues() {
   return useQuery({
     queryKey: ["venues"],
     queryFn: async (): Promise<Venue[]> => {
-      const [venueResult, countResult] = await Promise.all([
-        supabase
-          .from("venues")
-          .select(
-            `id, name, address, neighborhood, city_name, state, lat, lng,
-            has_big_screen, has_promotion, has_parking, promotions,
-            match_ids, shows_all_matches, verified, status,
-            created_at`,
-          )
-          .eq("status", "approved")
-          .order("created_at", { ascending: false }),
+      const { data: u } = await supabase.auth.getUser();
+      const userId = u?.user?.id;
+
+      let query = supabase
+        .from("venues")
+        .select(
+          `id, name, address, neighborhood, city_name, state, lat, lng,
+          has_big_screen, has_promotion, has_parking, promotions,
+          match_ids, shows_all_matches, verified, status,
+          claimed_by, sponsored, sponsored_until,
+          created_at`,
+        )
+        .order("created_at", { ascending: false });
+
+      if (userId) {
+        query = query.or(`status.eq.approved,created_by.eq.${userId}`);
+      } else {
+        query = query.eq("status", "approved");
+      }
+
+      const [venueResult, countResult] = await Promise.all([query,
         supabase.rpc("get_all_venue_rsvp_counts"),
       ]);
 
@@ -98,6 +114,7 @@ export function useVenue(id: string, userId?: string) {
           `id, name, address, neighborhood, city_name, state, lat, lng,
           has_big_screen, has_promotion, has_parking, promotions,
           match_ids, shows_all_matches, verified, status,
+          claimed_by, sponsored, sponsored_until,
           created_at`,
         )
         .eq("id", id);
@@ -269,5 +286,24 @@ export function useAddVenue() {
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["venues"] }),
+  });
+}
+
+export function useClaimVenue() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ venueId }: { venueId: string }) => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Faça login para reivindicar um local.");
+      const { error } = await supabase
+        .from("venues")
+        .update({ claimed_by: u.user.id })
+        .eq("id", venueId);
+      if (error) throw new Error(`Falha ao reivindicar: ${error.message}`);
+    },
+    onSuccess: (_data, { venueId }) => {
+      qc.invalidateQueries({ queryKey: ["venue", venueId] });
+      qc.invalidateQueries({ queryKey: ["venues"] });
+    },
   });
 }

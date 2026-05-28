@@ -14,7 +14,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { LocationButton } from "@/features/map/components/LocationButton";
 import { useMapLocation } from "@/features/map/hooks/useMapLocation";
 import { useVenues, useAddVenue } from "@/shared/lib/venues";
-import { useMatches } from "@/shared/lib/matches";
+
 import { searchPlaces, getPlaceDetails } from "@/shared/lib/google-places";
 import { calculateDistance, getZoomForRadius } from "@/shared/lib/utils";
 import { toast } from "sonner";
@@ -23,8 +23,8 @@ import { ClientOnly } from "@/shared/components/ClientOnly";
 
 const FILTERS = [
   { id: "proximo" as const, label: "Próximo" },
-  { id: "brazil" as const, label: "Jogos do Brasil" },
   { id: "screen" as const, label: "Telão" },
+  { id: "promo" as const, label: "Promoção" },
 ];
 
 const RADIUS_OPTIONS = [1, 3, 5, 10];
@@ -71,7 +71,6 @@ function MapaPage() {
   });
 
   const addVenue = useAddVenue();
-  const { data: dbMatches = [] } = useMatches();
 
   const handleAddVenue = async (venue: {
     name: string;
@@ -209,23 +208,15 @@ function MapaPage() {
         const distance = calculateDistance(userLocation[0], userLocation[1], v.lat, v.lng);
         if (distance > radius) return false;
       }
-      if (filters.has("brazil")) {
-        const hasBrazilMatch =
-          v.matchIds &&
-          v.matchIds.some((mid) => {
-            const m = dbMatches.find((dm) => dm.id === mid);
-            return m?.isBrazilMatch === true;
-          });
-        if (!hasBrazilMatch) return false;
-      }
       if (filters.has("screen") && !v.bigScreen) return false;
+      if (filters.has("promo") && !v.hasPromotion) return false;
       if (query) {
         const searchStr = `${v.name} ${v.address}`.toLowerCase();
         if (!searchStr.includes(query.toLowerCase())) return false;
       }
       return true;
     });
-  }, [allVenues, filters, query, userLocation, radius, dbMatches]);
+  }, [allVenues, filters, query, userLocation, radius]);
 
   const mapCenter = userLocation ?? undefined;
   const mapZoom = userLocation ? getZoomForRadius(radius) : undefined;
@@ -267,57 +258,62 @@ function MapaPage() {
             {locationError}
           </div>
         )}
-      </div>
 
-      {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] p-4 space-y-3">
-        <div className="inline-flex items-center gap-2 bg-brasil-navy text-white rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider">
-          <span>⚽</span>
-          <span>JOGO NAS RUAS</span>
-          <span className="text-brasil-yellow">· copa 2026</span>
-        </div>
-
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="buscar bar, jogo ou bairro"
-            aria-label="Buscar bar, jogo ou bairro"
-            className="w-full pl-10 pr-10 py-3 rounded-2xl bg-white/95 backdrop-blur border-2 border-brasil-navy shadow-lg text-sm placeholder:text-muted-foreground outline-none"
-          />
-          {isSearching && (
-            <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
-          )}
-          {selectedPlace && !isSearching && (
-            <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-        </div>
-
-        {!selectedPlace && searchResults.length > 0 && (
-          <div className="bg-white/95 backdrop-blur rounded-2xl border-2 border-brasil-navy shadow-lg overflow-hidden">
-            {searchResults.map((place) => (
-              <button
-                key={place.place_id}
-                onClick={() => handleSelectPlace(place)}
-                className="w-full text-left px-4 py-3 hover:bg-brasil-cream flex items-center gap-3 border-b border-border last:border-0"
-              >
-                <MapPin className="w-4 h-4 text-brasil-navy shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-brasil-navy truncate">{place.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {place.formatted_address}
-                  </p>
-                </div>
-              </button>
-            ))}
+        {/* Top bar (overlays only the map area) */}
+        <div className="absolute top-0 left-0 right-0 z-[1000] p-4 space-y-3">
+          <div className="inline-flex items-center gap-2 bg-brasil-navy text-white rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider">
+            <span>⚽</span>
+            <span>JOGO NAS RUAS</span>
+            <span className="text-brasil-yellow">· copa 2026</span>
           </div>
-        )}
 
-        <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="buscar bar, jogo ou bairro"
+              aria-label="Buscar bar, jogo ou bairro"
+              className="w-full pl-10 pr-10 py-3 rounded-2xl bg-white/95 backdrop-blur border-2 border-brasil-navy shadow-lg text-sm placeholder:text-muted-foreground outline-none"
+            />
+            {isSearching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+            {selectedPlace && !isSearching && (
+              <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+
+          {!selectedPlace && searchResults.length > 0 && (
+            <div className="bg-white/95 backdrop-blur rounded-2xl border-2 border-brasil-navy shadow-lg overflow-hidden">
+              {searchResults.map((place) => (
+                <button
+                  key={place.place_id}
+                  onClick={() => handleSelectPlace(place)}
+                  className="w-full text-left px-4 py-3 hover:bg-brasil-cream flex items-center gap-3 border-b border-border last:border-0"
+                >
+                  <MapPin className="w-4 h-4 text-brasil-navy shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-brasil-navy truncate">{place.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {place.formatted_address}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
+        </div>
+
+        {/* Desktop: floating location button on map */}
+        <div className="hidden lg:block absolute bottom-6 right-6 z-[1000]">
+          <LocationButton onClick={centerOnUser} isLocating={isLocating} />
+        </div>
       </div>
 
       {/* Mobile: Bottom sheet */}
@@ -359,10 +355,7 @@ function MapaPage() {
             <span className="text-brasil-yellow">· copa 2026</span>
           </div>
 
-          <div className="flex items-center justify-between">
-            <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
-            <LocationButton onClick={centerOnUser} isLocating={isLocating} />
-          </div>
+          <RadiusSelector radius={radius} options={RADIUS_OPTIONS} onChange={setRadius} />
 
           <FilterBar filters={filters} options={FILTERS} onToggle={toggle} />
 

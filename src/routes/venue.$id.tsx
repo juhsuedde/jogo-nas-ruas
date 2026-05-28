@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, useParams, Link } from "@tanstack/react-router";
 import { useState, useEffect, useCallback } from "react";
 import { VenueDetail } from "@/features/venues/components/VenueDetail";
-import { useVenue, useToggleRsvp, useMyRsvp } from "@/shared/lib/venues";
+import { VenuePhotos } from "@/features/venues/components/VenuePhotos";
+import { useVenue, useToggleRsvp, useMyRsvp, useClaimVenue } from "@/shared/lib/venues";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { toast } from "sonner";
 import { supabase } from "@/shared/lib/supabase";
@@ -89,6 +90,8 @@ function VenuePage() {
   const { data: myRsvp } = useMyRsvp(id);
   const toggleRsvp = useToggleRsvp(id);
 
+  const claimVenue = useClaimVenue();
+
   const [going, setGoing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -131,8 +134,18 @@ function VenuePage() {
 
   if (!venue) {
     return (
-      <main className="absolute inset-0 bg-background grid place-items-center p-6">
-        <p className="font-display text-xl text-brasil-navy text-center">local não encontrado</p>
+      <main className="absolute inset-0 bg-brasil-cream flex flex-col items-center justify-center text-center px-6 pb-24">
+        <div className="size-20 rounded-full bg-brasil-navy handmade-border-yellow flex items-center justify-center text-3xl mb-4">
+          ⚽
+        </div>
+        <h1 className="font-display text-xl text-brasil-navy mb-2">Local não encontrado</h1>
+        <p className="text-sm text-muted-foreground mb-6">Esse local não existe, foi removido ou ainda está pendente de aprovação.</p>
+        <Link
+          to="/mapa"
+          className="rounded-xl bg-brasil-green text-white font-bold px-6 py-3 font-display text-sm tracking-wider"
+        >
+          VER MAPA
+        </Link>
       </main>
     );
   }
@@ -177,6 +190,29 @@ function VenuePage() {
           onToggleGoing={() => handleToggle(!going)}
           onShare={handleShare}
         />
+        <VenuePhotos venueId={id} />
+        {user && venue && !venue.claimed_by && user.id !== venue.created_by && (
+          <div className="mt-3">
+            <button
+              onClick={() =>
+                claimVenue.mutate(
+                  { venueId: id },
+                  { onSuccess: () => toast.success("Local reivindicado com sucesso!") },
+                )
+              }
+              disabled={claimVenue.isPending}
+              className="w-full rounded-xl border-2 border-brasil-navy/20 bg-card py-3 text-center text-sm font-bold text-brasil-navy hover:bg-brasil-navy/5 transition-colors disabled:opacity-50"
+            >
+              {claimVenue.isPending ? "Reivindicando…" : "Reivindicar este local"}
+            </button>
+          </div>
+        )}
+        {venue?.claimed_by && (
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-brasil-navy/50">
+            <span className="size-2 rounded-full bg-brasil-green" />
+            Local verificado pelo proprietário
+          </div>
+        )}
         {!user && (
           <div className="mt-3 rounded-2xl bg-brasil-yellow/30 border-2 border-brasil-navy/20 p-3 text-center text-sm">
             <Link to="/login" className="font-bold text-brasil-navy underline">

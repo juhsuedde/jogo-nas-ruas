@@ -3,21 +3,26 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Venue } from "@/features/venues/hooks/useVenues";
 
-function createVenueIcon(name: string, isActive: boolean) {
+function createVenueIcon(name: string, isActive: boolean, isSponsored = false) {
   const size = isActive ? 46 : 36;
-  const bg = isActive ? "oklch(0.88 0.18 95)" : "oklch(0.58 0.16 145)";
+  const bg = isActive ? "oklch(0.88 0.18 95)" : isSponsored ? "oklch(0.75 0.2 85)" : "oklch(0.58 0.16 145)";
   const ballColor = isActive ? "oklch(0.32 0.13 265)" : "oklch(0.88 0.18 95)";
   const fontSize = isActive ? 22 : 18;
+  const borderColor = isSponsored && !isActive ? "oklch(0.55 0.18 80)" : "oklch(0.32 0.13 265)";
+  const star = isSponsored
+    ? '<div style="position:absolute;top:-6px;right:-6px;font-size:14px;transform:rotate(45deg);filter:drop-shadow(0 1px 1px oklch(0.32 0.13 265));">⭐</div>'
+    : "";
   return L.divIcon({
     className: "",
     html: `<div role="img" aria-label="${name}" style="
     width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;
     background:${bg};
-    border:${isActive ? 3 : 2.5}px solid oklch(0.32 0.13 265);
+    border:${isActive ? 3 : 2.5}px solid ${borderColor};
     transform:rotate(-45deg);
-    box-shadow:${isActive ? 3 : 2}px ${isActive ? 3 : 2}px 0 oklch(0.32 0.13 265);
+    box-shadow:${isActive ? 3 : 2}px ${isActive ? 3 : 2}px 0 ${borderColor};
     display:flex;align-items:center;justify-content:center;">
     <div style="transform:rotate(45deg);color:${ballColor};font-weight:900;font-size:${fontSize}px;">⚽</div>
+    ${star}
   </div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
@@ -119,7 +124,7 @@ function MapViewComponent({
           <Marker
             key={v.id}
             position={[v.lat, v.lng]}
-            icon={createVenueIcon(v.name, v.id === activeId)}
+            icon={createVenueIcon(v.name, v.id === activeId, !!v.sponsored)}
             eventHandlers={{ click: () => onSelect(v.id) }}
           />
         ))}

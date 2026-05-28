@@ -9,6 +9,7 @@ import {
   Calendar,
   Users,
   Loader2,
+  Trophy,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
@@ -149,8 +150,8 @@ function PerfilPage() {
             <div className="size-20 rounded-full bg-brasil-green handmade-border flex items-center justify-center">
               <span className="font-display text-2xl text-white">{initials}</span>
             </div>
-            <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-brasil-yellow border-2 border-brasil-navy flex items-center justify-center text-sm">
-              ⚽
+            <div className="absolute -bottom-1 -right-1 size-7 rounded-full bg-brasil-yellow border-2 border-brasil-navy flex items-center justify-center text-brasil-navy">
+              <Trophy className="size-4" />
             </div>
           </div>
           <div className="min-w-0">
@@ -288,6 +289,20 @@ function PerfilPage() {
           </Link>
         )}
 
+        <div className="flex items-center justify-center gap-4 pt-4">
+          <Link
+            to="/termos"
+            className="text-[11px] text-muted-foreground underline hover:text-brasil-navy transition-colors"
+          >
+            Termos de Uso
+          </Link>
+          <Link
+            to="/privacidade"
+            className="text-[11px] text-muted-foreground underline hover:text-brasil-navy transition-colors"
+          >
+            Privacidade
+          </Link>
+        </div>
         <p className="text-center text-[11px] text-muted-foreground pt-2">
           jogo nas ruas · copa 2026
         </p>

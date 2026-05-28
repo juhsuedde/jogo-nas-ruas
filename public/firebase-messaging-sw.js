@@ -32,8 +32,8 @@ messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title || "Jogo nas Ruas";
   const options = {
     body: payload.notification?.body || "",
-    icon: "/icon-192.svg",
-    badge: "/icon-192.svg",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
     data: payload.data || {},
   };
 

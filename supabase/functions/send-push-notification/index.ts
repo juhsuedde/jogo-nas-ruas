@@ -1,5 +1,8 @@
 // supabase/functions/send-push-notification/index.ts
 // Edge Function para enviar notificações push via Firebase Cloud Messaging v1 API
+// Tipos de notificação:
+//   - match_reminder:       usuário confirmou presença em um local
+//   - general_match_reminder: usuário tem push habilitado mas não confirmou presença
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
@@ -61,9 +64,10 @@ async function getAccessToken(): Promise<string> {
 async function sendPushNotification(
   accessToken: string,
   token: string,
-  matchName: string,
-  venueName: string,
-  venueId: string,
+  title: string,
+  body: string,
+  link: string,
+  data: Record<string, string>,
 ) {
   const projectId = FIREBASE_PROJECT_ID || "jogo-nas-ruas";
 
@@ -78,22 +82,14 @@ async function sendPushNotification(
       body: JSON.stringify({
         message: {
           token,
-          notification: {
-            title: `⚽ ${matchName} começa em 1h!`,
-            body: `Bora pro ${venueName}? Você confirmou presença!`,
-          },
-          data: {
-            venue_id: venueId,
-            type: "match_reminder",
-          },
+          notification: { title, body },
+          data,
           webpush: {
             notification: {
-              icon: "/icon-192x192.png",
-              badge: "/badge-72x72.png",
+              icon: "/icon-192.png",
+              badge: "/icon-192.png",
             },
-            fcmOptions: {
-              link: `/venue/${venueId}`,
-            },
+            fcmOptions: { link },
           },
         },
       }),
@@ -121,59 +117,82 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(SB_URL!, SB_SERVICE_ROLE_KEY!);
-
-    const { data: upcomingRsvps, error } = await supabase.rpc(
-      "get_upcoming_rsvps_for_notification",
-    );
-
-    if (error) throw error;
-    if (!upcomingRsvps || upcomingRsvps.length === 0) {
-      return new Response(JSON.stringify({ message: "Nenhuma notificação para enviar", sent: 0 }), {
-        headers,
-      });
-    }
-
     const accessToken = await getAccessToken();
     const results = [];
 
-    for (const rsvp of upcomingRsvps) {
+    // ── Type 1: Users who RSVP'd ──
+    const { data: upcomingRsvps, error: rsvpError } = await supabase.rpc(
+      "get_upcoming_rsvps_for_notification",
+    );
+
+    if (rsvpError) throw rsvpError;
+
+    for (const rsvp of upcomingRsvps ?? []) {
       try {
         await sendPushNotification(
           accessToken,
           rsvp.token,
-          rsvp.match_name,
-          rsvp.venue_name,
-          rsvp.venue_id,
+          `⚽ ${rsvp.match_name} começa em 1h!`,
+          `Bora pro ${rsvp.venue_name}? Você confirmou presença!`,
+          `/venue/${rsvp.venue_id}`,
+          { venue_id: rsvp.venue_id, type: "match_reminder" },
         );
 
         await supabase.from("notifications_sent").insert({
           rsvp_id: rsvp.rsvp_id,
           user_id: rsvp.user_id,
+          match_id: rsvp.match_id,
           type: "match_reminder",
           sent_at: new Date().toISOString(),
         });
 
-        results.push({
-          user: rsvp.user_id,
-          venue: rsvp.venue_name,
-          match: rsvp.match_name,
-          success: true,
-        });
+        results.push({ user: rsvp.user_id, match: rsvp.match_name, type: "match_reminder", success: true });
       } catch (err) {
-        results.push({
-          user: rsvp.user_id,
-          venue: rsvp.venue_name,
-          match: rsvp.match_name,
-          success: false,
-          error: err.message,
-        });
+        results.push({ user: rsvp.user_id, match: rsvp.match_name, type: "match_reminder", success: false, error: err.message });
       }
     }
+
+    // ── Type 2: Users with push enabled but no RSVP ──
+    const { data: generalUsers, error: generalError } = await supabase.rpc(
+      "get_upcoming_matches_general",
+    );
+
+    if (generalError) throw generalError;
+
+    for (const u of generalUsers ?? []) {
+      try {
+        await sendPushNotification(
+          accessToken,
+          u.token,
+          `⚽ ${u.match_name} começa em 1h!`,
+          "Já sabe onde vai ver o jogo?",
+          "/mapa",
+          { match_id: u.match_id, type: "general_match_reminder" },
+        );
+
+        await supabase.from("notifications_sent").insert({
+          user_id: u.user_id,
+          match_id: u.match_id,
+          type: "general_match_reminder",
+          sent_at: new Date().toISOString(),
+        });
+
+        results.push({ user: u.user_id, match: u.match_name, type: "general_match_reminder", success: true });
+      } catch (err) {
+        results.push({ user: u.user_id, match: u.match_name, type: "general_match_reminder", success: false, error: err.message });
+      }
+    }
+
+    const sent = results.filter((r) => r.success).length;
 
     return new Response(
       JSON.stringify({
         message: "Notificações processadas",
-        sent: results.filter((r) => r.success).length,
+        sent,
+        types: {
+          match_reminder: results.filter((r) => r.type === "match_reminder" && r.success).length,
+          general_match_reminder: results.filter((r) => r.type === "general_match_reminder" && r.success).length,
+        },
         results,
       }),
       { headers },

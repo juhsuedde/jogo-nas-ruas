@@ -14,7 +14,7 @@ export function LocationButton({ onClick, isLocating }: LocationButtonProps) {
       aria-label="Minha localização"
     >
       <Navigation
-        className={`w-6 h-6 text-brasil-navy transition-colors ${isLocating ? "animate-spin" : ""}`}
+        className={`w-6 h-6 text-brasil-navy transition-colors translate-y-px ${isLocating ? "animate-spin" : ""}`}
         strokeWidth={2.5}
       />
     </button>

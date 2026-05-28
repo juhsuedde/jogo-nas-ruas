@@ -42,9 +42,9 @@ interface GooglePlaceDetails {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const PERKS = [
-  { id: "big-screen", label: "Tem Telão", icon: Tv },
-  { id: "promo", label: "Tem Promoção", icon: Tag },
-  { id: "parking", label: "Tem Estacionamento", icon: Car },
+  { id: "big-screen", label: "Telão", icon: Tv },
+  { id: "promo", label: "Promoção", icon: Tag },
+  { id: "parking", label: "Estacionamento", icon: Car },
 ];
 
 // ─── Component ───────────────────────────────────────────────────────────────

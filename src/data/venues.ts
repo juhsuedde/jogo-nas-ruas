@@ -23,6 +23,9 @@ export type Venue = {
   showsAllMatches?: boolean;
   verified?: boolean;
   status?: string;
+  claimed_by?: string | null;
+  sponsored?: boolean;
+  sponsored_until?: string | null;
 };
 
 export const VENUES: Venue[] = [
